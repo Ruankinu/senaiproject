@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cabecalho } from '../components/Cabecalho';
 import { LinhaAtividade } from '../components/LinhaAtividade';
@@ -18,11 +18,11 @@ import {
   useVinculoPaciente,
 } from '../hooks/dados';
 import * as rithmo from '../lib/rithmo';
-import { formatarDiaExtenso, hojeISO, pluralizar } from '../lib/dates';
+import { formatarDataLonga, hojeISO, pluralizar } from '../lib/dates';
 import { mensagemErro } from '../lib/errors';
-import type { Atividade } from '../types';
+import type { Atividade, Progresso } from '../types';
 
-/** Agrupa a rotina em períodos do dia — a agenda vira um dia organizado. */
+/** Agrupa a rotina em períodos do dia — a vitrine do "meu dia". */
 function agruparPorPeriodo(atividades: Atividade[]) {
   const periodos: { nome: string; itens: Atividade[] }[] = [
     { nome: 'Manhã', itens: [] },
@@ -45,6 +45,13 @@ function agruparPorPeriodo(atividades: Atividade[]) {
   return periodos.filter((periodo) => periodo.itens.length > 0);
 }
 
+function saudacaoDoDia(): string {
+  const hora = new Date().getHours();
+  if (hora < 12) return 'Bom dia';
+  if (hora < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
 export function PaginaInicio() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -57,6 +64,23 @@ export function PaginaInicio() {
   const [modalAberta, setModalAberta] = useState(false);
   const [editando, setEditando] = useState<Atividade | null>(null);
   const [paraExcluir, setParaExcluir] = useState<Atividade | null>(null);
+
+  // celebração discreta ao desbloquear conquista
+  const progressoRef = useRef<Progresso | null>(null);
+  const antesRef = useRef<Set<string>>(new Set());
+  const [conquistaNova, setConquistaNova] = useState<string | null>(null);
+
+  useEffect(() => {
+    progressoRef.current = progresso.dados;
+  }, [progresso.dados]);
+
+  useEffect(() => {
+    if (conquistaNova) {
+      const timer = window.setTimeout(() => setConquistaNova(null), 6000);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [conquistaNova]);
 
   const aoSalvar = async (dados: rithmo.DadosAtividade, id?: number) => {
     if (id) {
@@ -71,10 +95,31 @@ export function PaginaInicio() {
 
   const aoAlternar = async (atividade: Atividade) => {
     const concluindo = atividade.status !== 'Concluída';
+    antesRef.current = new Set(
+      (progressoRef.current?.badges ?? [])
+        .filter((b) => b.aberta)
+        .map((b) => b.id),
+    );
     try {
       await rithmo.alternarConclusao(atividade.id);
       await Promise.all([rotina.recarregar(), progresso.recarregar()]);
       toast.mostrar(concluindo ? 'Atividade concluída.' : 'Atividade reaberta.');
+      // dá um instante para o estado novo chegar antes de comparar
+      window.setTimeout(() => {
+        const depois = new Set(
+          (progressoRef.current?.badges ?? [])
+            .filter((b) => b.aberta)
+            .map((b) => b.id),
+        );
+        const novo = [...depois].find((id) => !antesRef.current.has(id));
+        if (novo) {
+          const badge = progressoRef.current?.badges.find((b) => b.id === novo);
+          if (badge) {
+            setConquistaNova(badge.nome);
+            toast.mostrar(`Conquista desbloqueada: ${badge.nome}`, 'conquista');
+          }
+        }
+      }, 900);
     } catch (e) {
       toast.mostrar('Não foi possível concluir a operação.', 'erro');
       console.error('[atividade] Falha ao alternar:', e);
@@ -105,6 +150,7 @@ export function PaginaInicio() {
   const hoje = hojeISO();
   const temAtividades = Boolean(dados && dados.total > 0);
   const periodos = temAtividades ? agruparPorPeriodo(dados!.atividades) : [];
+  const primeiroNome = usuario?.nome.split(' ')[0] ?? '';
 
   return (
     <div className="container">
@@ -125,30 +171,49 @@ export function PaginaInicio() {
 
         {!rotina.carregando && !rotina.erro && dados && temAtividades && (
           <>
+            <header className="saudacao">
+              <div>
+                <p className="saudacao__rotulo">Hoje · {formatarDataLonga(hoje)}</p>
+                <h1 className="saudacao__titulo">
+                  {saudacaoDoDia()}, {primeiroNome}.
+                </h1>
+                <p className="saudacao__data">
+                  {pluralizar(dados.total, 'atividade planejada', 'atividades planejadas')} para o seu dia
+                </p>
+              </div>
+              <div className="saudacao__acoes">
+                <Botao onClick={() => setModalAberta(true)}>
+                  <Icone nome="plus" tamanho={15} />
+                  Nova atividade
+                </Botao>
+              </div>
+            </header>
+
             <section
-              className="dia-faixa"
-              aria-label={`Seu dia: ${formatarDiaExtenso(hoje)}`}
+              className="progresso-hero"
+              aria-label={`Progresso do dia: ${dados.concluidas} de ${dados.total} atividades`}
             >
               <div>
-                <p className="dia-faixa__eyebrow">{formatarDiaExtenso(hoje)}</p>
-                <h1 className="dia-faixa__titulo">Seu dia.</h1>
+                <p className="progresso-hero__rotulo">Seu dia</p>
+                <h2 className="progresso-hero__titulo">
+                  {dados.concluidas === dados.total && dados.total > 0
+                    ? 'Dia completo.'
+                    : 'Ainda em movimento.'}
+                </h2>
+                <p className="progresso-hero__texto">
+                  {dados.concluidas} de {dados.total} {pluralizar(dados.total, 'atividade concluída', 'atividades concluídas')}
+                </p>
+                <div className="progresso-hero__barra">
+                  <i style={{ width: `${dados.progresso}%` }} />
+                </div>
               </div>
-              <div className="dia-faixa__meta">
-                <span className="dia-faixa__fracao">
+              <div className="progresso-hero__contagem">
+                <span className="progresso-hero__fracao">
                   {dados.concluidas}/{dados.total}
                 </span>
-                <span className="dia-faixa__legenda">
-                  {pluralizar(dados.total, 'atividade concluída', 'atividades concluídas')}
-                </span>
-                <span
-                  className="dia-faixa__barra"
-                  role="progressbar"
-                  aria-valuenow={dados.progresso}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="Progresso de hoje"
-                >
-                  <i style={{ width: `${dados.progresso}%` }} />
+                <span className="progresso-hero__pct">
+                  <Icone nome="check" tamanho={12} />
+                  {dados.progresso}%
                 </span>
               </div>
             </section>
@@ -157,25 +222,23 @@ export function PaginaInicio() {
               <section className="coluna-rotina" aria-label="Sua rotina de hoje">
                 <header className="rotina-cabecalho">
                   <div>
-                    <h2 className="rotina-cabecalho__titulo">Sua rotina</h2>
+                    <h2 className="rotina-cabecalho__titulo">Rotina</h2>
                     <p className="rotina-cabecalho__legenda">
-                      {dados.concluidas} de {dados.total} — um dia de cada vez.
+                      {dados.atividades.length} {pluralizar(dados.atividades.length, 'momento', 'momentos')} — siga o seu compasso.
                     </p>
                   </div>
-                  <Botao onClick={() => setModalAberta(true)}>
-                    <Icone nome="plus" tamanho={14} />
-                    Nova atividade
-                  </Botao>
                 </header>
 
-                <div className="agenda">
-                  {periodos.map((periodo) => (
-                    <section
-                      className="agenda__grupo"
-                      key={periodo.nome}
-                      aria-label={periodo.nome}
-                    >
-                      <h3 className="agenda__rotulo">{periodo.nome}</h3>
+                <div>
+                  {periodos.map((periodo, indice) => (
+                    <section className="periodo" key={periodo.nome} aria-label={periodo.nome}>
+                      <h3
+                        className={`periodo__rotulo${
+                          indice === 0 ? ' periodo__rotulo--verde' : ''
+                        }`}
+                      >
+                        {periodo.nome}
+                      </h3>
                       {periodo.itens.map((atividade) => (
                         <LinhaAtividade
                           key={atividade.id}
@@ -191,6 +254,17 @@ export function PaginaInicio() {
               </section>
 
               <aside className="coluna-apoio">
+                {conquistaNova && (
+                  <section className="cartao apoio-card" role="status" aria-live="polite">
+                    <span className="apoio-card__rotulo">Conquista desbloqueada</span>
+                    <div className="conquista-chip">
+                      <span className="conquista-chip__icone conquista-chip__icone--verde">
+                        <Icone nome="trophy" tamanho={13} />
+                      </span>
+                      <span className="conquista-chip__nome">{conquistaNova}</span>
+                    </div>
+                  </section>
+                )}
                 {progresso.dados && (
                   <SecaoConsistencia progresso={progresso.dados} />
                 )}
@@ -208,21 +282,35 @@ export function PaginaInicio() {
 
         {!rotina.carregando && !rotina.erro && dados && !temAtividades && (
           <>
-            <section className="dia-faixa">
+            <header className="saudacao">
               <div>
-                <p className="dia-faixa__eyebrow">{formatarDiaExtenso(hoje)}</p>
-                <h1 className="dia-faixa__titulo">Seu dia.</h1>
+                <p className="saudacao__rotulo">Hoje · {formatarDataLonga(hoje)}</p>
+                <h1 className="saudacao__titulo">{saudacaoDoDia()}, {primeiroNome}.</h1>
               </div>
-              <div className="dia-faixa__meta">
-                <span className="dia-faixa__fracao">0/0</span>
-                <span className="dia-faixa__legenda">ainda sem atividades</span>
+              <div className="saudacao__acoes">
+                <Botao onClick={() => setModalAberta(true)}>
+                  <Icone nome="plus" tamanho={15} />
+                  Nova atividade
+                </Botao>
               </div>
-            </section>
+            </header>
             <EstadoVazio
               titulo="Nada planejado para hoje."
               texto="Adicione sua primeira atividade com horário e prioridade — um dia de cada vez."
               acao={{ rotulo: 'Nova atividade', onClick: () => setModalAberta(true) }}
             />
+            <div className="grade-dia">
+              <aside className="coluna-apoio" style={{ position: 'static' }}>
+                {progresso.dados && <SecaoConsistencia progresso={progresso.dados} />}
+                <SecaoVinculo
+                  psicologo={vinculo.psicologo}
+                  carregando={vinculo.carregando}
+                  onVincular={aoVincular}
+                  onSucesso={(mensagem) => toast.mostrar(mensagem)}
+                  onErro={(mensagem) => toast.mostrar(mensagem, 'erro')}
+                />
+              </aside>
+            </div>
           </>
         )}
       </main>

@@ -33,18 +33,6 @@ export function formatarDiaCurto(texto: string): string {
     .replace('.', '')}, ${dia}/${mes}`;
 }
 
-export function dataOntemISO(): string {
-  const agora = new Date();
-  const ontem = new Date(
-    agora.getFullYear(),
-    agora.getMonth(),
-    agora.getDate() - 1,
-  );
-  const mes = String(ontem.getMonth() + 1).padStart(2, '0');
-  const dia = String(ontem.getDate()).padStart(2, '0');
-  return `${ontem.getFullYear()}-${mes}-${dia}`;
-}
-
 export function somarDiasISO(iso: string, dias: number): string {
   const data = parseData(iso);
   if (!data) return iso;

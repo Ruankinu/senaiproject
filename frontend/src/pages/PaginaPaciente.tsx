@@ -6,18 +6,19 @@ import { Icone } from '../components/Icone';
 import { Barra } from '../components/Barra';
 import { Botao } from '../components/Botao';
 import { EstadoVazio } from '../components/EstadoVazio';
+import { EsqueletoPainel } from '../components/Esqueleto';
 import { useAuth } from '../context/AuthContext';
 import { usePacienteDetalhe } from '../hooks/dados';
 import {
   formatarDiaCurto,
   formatarDiaExtenso,
+  formatarDataLonga,
   hojeISO,
   pluralizar,
   rotuloRelativo,
   somarDiasISO,
 } from '../lib/dates';
-import type { Atividade } from '../types';
-import type { RotinaDia } from '../types';
+import type { Atividade, RotinaDia } from '../types';
 
 /** Agrupa a rotina do paciente em períodos do dia. */
 function agruparPorPeriodo(atividades: Atividade[]) {
@@ -43,8 +44,8 @@ function agruparPorPeriodo(atividades: Atividade[]) {
 }
 
 /**
- * Visão do psicólogo: acompanhamento da rotina, sem prontuário.
- * O dia abre na faixa de tinta; a rotina domina; histórico no apoio.
+ * Visão do psicólogo: acompanhamento da rotina do paciente, sem prontuário.
+ * O dia em um cartão de navegação; a rotina domina; histórico no apoio.
  */
 export function PaginaPaciente() {
   const { id } = useParams<{ id: string }>();
@@ -91,58 +92,56 @@ export function PaginaPaciente() {
           </section>
         ) : (
           <>
-            <section
-              className="dia-faixa"
-              aria-label={`Rotina de ${formatarDiaExtenso(dia)}`}
-            >
+            <header className="saudacao">
               <div>
-                <p className="dia-faixa__eyebrow">
+                <p className="saudacao__rotulo">
                   {relativo ? `${relativo} · ` : ''}
-                  {formatarDiaExtenso(dia)}
+                  {formatarDataLonga(dia)}
                 </p>
-                <h1 className="dia-faixa__titulo">Rotina</h1>
-              </div>
-
-              <div className="dia-faixa__meta">
-                <span className="dia-faixa__fracao">
-                  {(rotinaDoDia?.concluidas ?? 0)}/{rotinaDoDia?.total ?? 0}
-                </span>
-                <span className="dia-faixa__legenda">
+                <h1 className="saudacao__titulo">Rotina do paciente</h1>
+                <p className="saudacao__data">
+                  {(rotinaDoDia?.concluidas ?? 0)} de{' '}
+                  {(rotinaDoDia?.total ?? 0)}{' '}
                   {pluralizar(
                     rotinaDoDia?.total ?? 0,
-                    'atividade concluída',
-                    'atividades concluídas',
-                  )}
-                </span>
-                <nav
-                  className="dia-faixa__navegar"
-                  aria-label="Navegar entre dias"
+                    'atividade',
+                    'atividades',
+                  )}{' '}
+                  concluídas
+                </p>
+              </div>
+            </header>
+
+            <section className="dia-card" aria-label="Navegar entre dias">
+              <div className="dia-card__info">
+                <p className="dia-card__rotulo">
+                  {relativo ? relativo : 'Dia'}
+                </p>
+                <h2 className="dia-card__titulo">{formatarDiaExtenso(dia)}</h2>
+              </div>
+              <div className="dia-card__navegar">
+                <button
+                  type="button"
+                  className="btn btn--icone"
+                  aria-label="Dia anterior"
+                  onClick={() => setDia(somarDiasISO(dia, -1))}
                 >
-                  <button
-                    type="button"
-                    className="btn btn--icone"
-                    aria-label="Dia anterior"
-                    onClick={() => setDia(somarDiasISO(dia, -1))}
-                  >
-                    <Icone nome="arrow-left" tamanho={14} />
-                  </button>
-                  <span className="dia-faixa__alvo">
-                    {formatarDiaCurto(dia)}
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn--icone"
-                    aria-label="Próximo dia"
-                    onClick={() => setDia(somarDiasISO(dia, 1))}
-                  >
-                    <Icone nome="chevron-right" tamanho={14} />
-                  </button>
-                  {dia !== hojeISO() && (
-                    <Botao variante="fantasma" onClick={() => setDia(hojeISO())}>
-                      Hoje
-                    </Botao>
-                  )}
-                </nav>
+                  <Icone nome="arrow-left" tamanho={14} />
+                </button>
+                <span className="dia-card__alvo">{formatarDiaCurto(dia)}</span>
+                <button
+                  type="button"
+                  className="btn btn--icone"
+                  aria-label="Próximo dia"
+                  onClick={() => setDia(somarDiasISO(dia, 1))}
+                >
+                  <Icone nome="chevron-right" tamanho={14} />
+                </button>
+                {dia !== hojeISO() && (
+                  <Botao variante="fantasma" onClick={() => setDia(hojeISO())}>
+                    Hoje
+                  </Botao>
+                )}
               </div>
             </section>
 
@@ -151,15 +150,15 @@ export function PaginaPaciente() {
                 <b>
                   {resumo.dados.hoje.concluidas}/{resumo.dados.hoje.total}
                 </b>
-                atividades hoje
+                hoje
               </span>
               <span className="resumo-linha__item">
                 <b>{resumo.dados.atrasadas}</b>
-                atrasadas em aberto
+                atrasadas
               </span>
               <span className="resumo-linha__item">
                 <b>{resumo.dados.progresso.streak}</b>
-                dias de consistência
+                dias de ritmo
               </span>
               <span className="resumo-linha__item">
                 <b>
@@ -184,21 +183,27 @@ export function PaginaPaciente() {
                 >
                   <header className="rotina-cabecalho">
                     <div>
-                      <h2 className="rotina-cabecalho__titulo">Sua rotina</h2>
+                      <h2 className="rotina-cabecalho__titulo">Rotina</h2>
                       <p className="rotina-cabecalho__legenda">
                         {formatarDiaCurto(dia)} — dados reais da rotina.
                       </p>
                     </div>
                   </header>
 
-                  <div className="agenda">
-                    {periodos.map((periodo) => (
+                  <div>
+                    {periodos.map((periodo, indice) => (
                       <section
-                        className="agenda__grupo"
+                        className="periodo"
                         key={periodo.nome}
                         aria-label={periodo.nome}
                       >
-                        <h3 className="agenda__rotulo">{periodo.nome}</h3>
+                        <h3
+                          className={`periodo__rotulo${
+                            indice === 0 ? ' periodo__rotulo--verde' : ''
+                          }`}
+                        >
+                          {periodo.nome}
+                        </h3>
                         {periodo.itens.map((atividade) => (
                           <LinhaAtividade
                             key={atividade.id}
@@ -212,46 +217,25 @@ export function PaginaPaciente() {
                 </section>
 
                 <aside className="coluna-apoio">
-                  <section className="ritmo-bloco" aria-label="Ritmo do paciente">
-                    <span className="ritmo-bloco__rotulo">Ritmo</span>
-                    <div className="ritmo-metrica">
-                      <span className="ritmo-metrica__numero">
+                  <section className="cartao apoio-card" aria-label="Ritmo do paciente">
+                    <span className="apoio-card__rotulo">Ritmo</span>
+                    <div className="consistencia">
+                      <span className="consistencia__numero">
                         {resumo.dados.progresso.streak}
                       </span>
-                      <span className="ritmo-metrica__texto">
+                      <span className="consistencia__texto">
                         {pluralizar(
                           resumo.dados.progresso.streak,
                           'dia',
                           'dias',
                         )}{' '}
-                        de consistência
+                        de ritmo
                       </span>
-                      {resumo.dados.progresso.badges.filter((b) => b.aberta)
-                        .length > 0 && (
-                        <span className="ritmo-metrica__extra">
-                          {resumo.dados.progresso.badges.filter((b) => b.aberta)
-                            .length}{' '}
-                          conquista
-                          {resumo.dados.progresso.badges.filter((b) => b.aberta)
-                            .length > 1
-                            ? 's'
-                            : ''}{' '}
-                          aberta
-                          {resumo.dados.progresso.badges.filter(
-                            (b) => b.aberta,
-                          ).length > 1
-                            ? 's'
-                            : ''}
-                        </span>
-                      )}
                     </div>
                   </section>
 
-                  <section
-                    className="ritmo-bloco"
-                    aria-label="Últimos 7 dias"
-                  >
-                    <span className="ritmo-bloco__rotulo">Últimos 7 dias</span>
+                  <section className="cartao apoio-card" aria-label="Últimos 7 dias">
+                    <span className="apoio-card__rotulo">Últimos 7 dias</span>
                     <div className="historico">
                       {resumo.dados.ultimos7
                         .slice()
@@ -290,17 +274,6 @@ export function PaginaPaciente() {
           </>
         )}
       </main>
-    </div>
-  );
-}
-
-function EsqueletoPainel() {
-  return (
-    <div className="esqueleto-painel esqueleto-painel--alto" aria-hidden="true">
-      <span className="esqueleto__linha esqueleto__linha--titulo" />
-      <span className="esqueleto__linha" />
-      <span className="esqueleto__linha" />
-      <span className="esqueleto__linha" />
     </div>
   );
 }

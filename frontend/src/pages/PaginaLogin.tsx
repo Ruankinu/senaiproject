@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Botao } from '../components/Botao';
+import { Marca } from '../components/Marca';
 import { useAuth } from '../context/AuthContext';
 import { mensagemErro } from '../lib/errors';
 
@@ -47,23 +48,19 @@ export function PaginaLogin() {
   return (
     <main className="acesso">
       <aside className="acesso__marca">
-        <span className="acesso__pauta" aria-hidden="true" />
-        <Link to="/" className="marca" aria-label="RITHMO">
-          <span className="marca__pulso" aria-hidden="true" />
-          <span className="marca__nome">RITHMO</span>
-        </Link>
-
-        <div className="acesso__frase">
-          <span>Seu ritmo.</span>
-          <span>Um dia de <em>cada vez</em>.</span>
+        <div className="acesso__logo">
+          <Marca tamanho="grande" className="marca-marca--sobre-roxo" />
         </div>
 
-        <div>
-          <p className="acesso__demo">
-            pacientes: ana@rithmo.app · lucas@rithmo.app ·
-            psicóloga: psicologa@rithmo.app (senha 123456)
-          </p>
-        </div>
+        <p className="acesso__frase">
+          Seu ritmo.
+          <em>Um dia de cada vez.</em>
+        </p>
+
+        <p className="acesso__demo">
+          pacientes: ana@rithmo.app · lucas@rithmo.app · psicóloga:
+          psicologa@rithmo.app (senha 123456)
+        </p>
       </aside>
 
       <section className="acesso__painel">

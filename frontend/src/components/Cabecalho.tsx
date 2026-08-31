@@ -1,40 +1,56 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+import { Marca } from './Marca';
 import { Icone } from './Icone';
 import type { Usuario } from '../types';
 
 interface CabecalhoProps {
   usuario: Usuario;
-  streak?: number;
   onSair: () => void;
 }
 
 /**
- * Barra superior do produto: marca à esquerda, contexto e saída à direita.
- * Nota: o streak agora vive na coluna de ritmo da Home — aqui só contexto.
+ * Navegação do produto: marca à esquerda, destino atual em destaque e
+ * identidade + saída à direita. Cada perfil tem sua própria arquitetura.
  */
 export function Cabecalho({ usuario, onSair }: CabecalhoProps) {
   const primeiroNome = usuario.nome.split(' ')[0];
+  const itens =
+    usuario.perfil === 'psicologo'
+      ? [
+          { to: '/psicologo', rotulo: 'Pacientes' },
+          { to: '/perfil', rotulo: 'Perfil' },
+        ]
+      : [
+          { to: '/', rotulo: 'Hoje' },
+          { to: '/perfil', rotulo: 'Perfil' },
+        ];
 
   return (
     <header className="cabecalho">
-      <Link
-        to={usuario.perfil === 'psicologo' ? '/psicologo' : '/'}
-        className="marca"
-        aria-label="RITHMO"
-      >
-        <span className="marca__pulso" aria-hidden="true" />
-        <span className="marca__nome">RITHMO</span>
+      <Link to={itens[0].to} className="cabecalho__marca" aria-label="RITHMO — início">
+        <Marca tamanho="pequena" />
       </Link>
 
+      <nav className="cabecalho__nav" aria-label="Navegação principal">
+        {itens.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.to === '/' || item.to === '/psicologo'}
+            className={({ isActive }) =>
+              `cabecalho__link${isActive ? ' cabecalho__link--ativo' : ''}`
+            }
+          >
+            {item.rotulo}
+          </NavLink>
+        ))}
+      </nav>
+
       <div className="cabecalho__direita">
-        <span className="cabecalho__data">
-          {new Date().toLocaleDateString('pt-BR', {
-            weekday: 'short',
-            day: '2-digit',
-            month: 'short',
-          })}
+        <span className="cabecalho__usuario">
+          <span className="cabecalho__usuario-ponto" aria-hidden="true" />
+          {primeiroNome}
         </span>
-        <span className="cabecalho__usuario">{primeiroNome}</span>
         <button
           type="button"
           className="btn btn--icone"
@@ -42,7 +58,7 @@ export function Cabecalho({ usuario, onSair }: CabecalhoProps) {
           title="Sair"
           onClick={onSair}
         >
-          <Icone nome="logout" tamanho={15} />
+          <Icone nome="logout" tamanho={16} />
         </button>
       </div>
     </header>

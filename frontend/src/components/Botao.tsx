@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type Variante = 'primaria' | 'fantasma' | 'perigo' | 'icone';
+type Variante = 'primaria' | 'fantasma' | 'perigo' | 'sucesso' | 'icone';
 
 interface BotaoProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variante?: Variante;

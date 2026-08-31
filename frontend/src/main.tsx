@@ -1,10 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import '@fontsource-variable/inter';
-import '@fontsource-variable/fraunces';
-import '@fontsource/ibm-plex-mono/400.css';
-import '@fontsource/ibm-plex-mono/500.css';
-import '@fontsource/ibm-plex-mono/600.css';
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/quicksand';
 import './styles/global.css';
 import App from './App';
 

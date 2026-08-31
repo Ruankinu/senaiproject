@@ -54,11 +54,13 @@ export function PaginaPsicologo() {
           </div>
 
           <div className="selo-codigo" aria-label="Código de vínculo">
-            <span className="selo-codigo__rotulo">Código de vínculo</span>
-            <span className="selo-codigo__valor">{usuario?.codigo ?? '—'}</span>
-            <span className="selo-codigo__descricao">
+            <div className="selo-codigo__conteudo">
+              <span className="selo-codigo__rotulo">Código de vínculo</span>
+              <span className="selo-codigo__valor">{usuario?.codigo ?? '—'}</span>
+            </div>
+            <p className="selo-codigo__descricao">
               Compartilhe — seus pacientes entram com este código.
-            </span>
+            </p>
             <Botao variante="fantasma" onClick={() => void aoCopiar()}>
               <Icone nome="copy" tamanho={14} />
               {copiado ? 'Copiado' : 'Copiar'}
@@ -121,19 +123,20 @@ function PacienteLinha({ paciente }: { paciente: PacienteResumo }) {
         />
       </div>
 
-      <div className="paciente__consistencia">
-        {paciente.atrasadas > 0 && (
-          <span className="paciente__atrasadas">
-            {paciente.atrasadas} atrasada{paciente.atrasadas > 1 ? 's' : ''}
-          </span>
-        )}
-        {paciente.streak > 0 && (
-          <span>
-            {paciente.streak} {paciente.streak === 1 ? 'dia' : 'dias'}
-          </span>
-        )}
-        {paciente.atrasadas === 0 && paciente.streak === 0 && '—'}
-      </div>
+      <span
+        className={`paciente__consistencia${
+          paciente.atrasadas > 0 ? ' paciente__atrasadas' : ''
+        }`}
+        title={
+          paciente.atrasadas > 0
+            ? `${paciente.atrasadas} atrasadas em aberto`
+            : `${paciente.streak} dias de consistência`
+        }
+      >
+        {paciente.atrasadas > 0
+          ? `${paciente.atrasadas} atrasada${paciente.atrasadas > 1 ? 's' : ''}`
+          : `${paciente.streak} ${paciente.streak === 1 ? 'dia' : 'dias'}`}
+      </span>
 
       <Link
         to={`/psicologo/paciente/${paciente.id}`}

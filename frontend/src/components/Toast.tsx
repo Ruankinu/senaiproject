@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { Icone } from './Icone';
 
-type Tom = 'sucesso' | 'erro';
+type Tom = 'sucesso' | 'erro' | 'conquista';
 
 interface Toast {
   id: number;
@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((atual) => [...atual, { id, mensagem, tom }]);
     window.setTimeout(() => {
       setToasts((atual) => atual.filter((toast) => toast.id !== id));
-    }, 3200);
+    }, 3600);
   }, []);
 
   const valor = useMemo(() => ({ mostrar }), [mostrar]);
@@ -54,10 +54,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       >
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast toast--${toast.tom}`}>
-            {toast.tom === 'sucesso' ? (
-              <Icone nome="check" tamanho={14} />
-            ) : (
+            {toast.tom === 'erro' ? (
               <Icone nome="x" tamanho={14} />
+            ) : toast.tom === 'conquista' ? (
+              <Icone nome="trophy" tamanho={14} />
+            ) : (
+              <Icone nome="check" tamanho={14} />
             )}
             {toast.mensagem}
           </div>

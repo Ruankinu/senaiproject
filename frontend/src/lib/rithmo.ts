@@ -19,9 +19,6 @@ export interface DadosAtividade {
 
 // ---- Rotina (paciente) ----
 
-export const listarAtividades = () =>
-  api.get<{ quantidade: number; atividades: Atividade[] }>('/atividades');
-
 export const criarAtividade = (dados: DadosAtividade) =>
   api.post<{ mensagem: string; atividade: Atividade }>('/atividades', dados);
 

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Icone } from './Icone';
 import type { Progresso } from '../types';
 import { pluralizar } from '../lib/dates';
@@ -7,49 +8,51 @@ interface SecaoConsistenciaProps {
 }
 
 /**
- * Coluna de apoio da Home: o ritmo em um número sóbrio + conquistas como
- * selos colecionáveis (sinete, nome e progresso) — nunca emoji ou festa.
+ * Consistência na Home: número sóbrio + somente as conquistas JÁ
+ * desbloqueadas (sem revelar condições de itens futuros). O acervo
+ * completo mora no Perfil.
  */
 export function SecaoConsistencia({ progresso }: SecaoConsistenciaProps) {
   const { streak, melhorStreak, badges } = progresso;
+  const conquistadas = badges.filter((badge) => badge.aberta);
 
   return (
-    <section className="ritmo-bloco" aria-label="Sua consistência">
-      <span className="ritmo-bloco__rotulo">Seu ritmo</span>
+    <section className="cartao apoio-card" aria-label="Sua consistência">
+      <span className="apoio-card__rotulo">Consistência</span>
 
-      <div className="ritmo-metrica">
-        <span className="ritmo-metrica__numero">{streak}</span>
-        <span className="ritmo-metrica__texto">
-          {pluralizar(streak, 'dia', 'dias')} de consistência
+      <div className="consistencia">
+        <span className="consistencia__numero">{streak}</span>
+        <span className="consistencia__texto">
+          {pluralizar(streak, 'dia', 'dias')} de ritmo
         </span>
         {melhorStreak > streak && melhorStreak > 0 && (
-          <span className="ritmo-metrica__extra">
+          <span className="consistencia__extra">
             melhor sequência: {melhorStreak} dias
           </span>
         )}
       </div>
 
-      <span className="ritmo-bloco__rotulo" style={{ marginTop: 22 }}>
-        Conquistas
-      </span>
-      <ul className="selos">
-        {badges.map((badge) => (
-          <li
-            key={badge.id}
-            className={`selo${badge.aberta ? ' selo--aberta' : ''}`}
-          >
-            <span className="selo__sinete" aria-hidden="true">
-              {badge.aberta ? <Icone nome="check" tamanho={12} /> : null}
-            </span>
-            <span className="selo__nome">{badge.nome}</span>
-            <span className="selo__progresso">
-              {badge.aberta
-                ? 'OK'
-                : `${badge.progresso}/${badge.meta}`}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {conquistadas.length > 0 && (
+        <>
+          <span className="apoio-card__rotulo" style={{ marginTop: 18 }}>
+            Conquistas
+          </span>
+          <ul className="conquistas-mini" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {conquistadas.map((badge) => (
+              <li key={badge.id} className="conquista-chip">
+                <span className="conquista-chip__icone conquista-chip__icone--verde">
+                  <Icone nome="check" tamanho={12} />
+                </span>
+                <span className="conquista-chip__nome">{badge.nome}</span>
+              </li>
+            ))}
+          </ul>
+          <Link to="/perfil" className="ver-mais">
+            Ver todas
+            <Icone nome="chevron-right" tamanho={12} />
+          </Link>
+        </>
+      )}
     </section>
   );
 }

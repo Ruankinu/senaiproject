@@ -21,12 +21,6 @@ export function Icone({ nome, tamanho = 16, className }: IconeProps) {
     'arrow-left': <path d="M8.5 2.5L3 8l5.5 5.5M3 8h10" />,
     'chevron-right': <path d="M6 3.5L10.5 8L6 12.5" />,
     x: <path d="M4 4l8 8M12 4l-8 8" />,
-    refresh: (
-      <>
-        <path d="M13 8a5 5 0 11-1.4-4.1" />
-        <path d="M13 2.8v3.4H9.6" />
-      </>
-    ),
     logout: (
       <>
         <path d="M6.5 2.5H4a1.5 1.5 0 00-1.5 1.5v8A1.5 1.5 0 004 13.5h2.5" />
@@ -47,13 +41,22 @@ export function Icone({ nome, tamanho = 16, className }: IconeProps) {
         <path d="M11 8.5a3.5 3.5 0 013.5 3.5" />
       </>
     ),
-    user: (
+    calendar: (
       <>
-        <circle cx="8" cy="5" r="2.5" />
-        <path d="M3.2 13.5a4.8 4.8 0 019.6 0" />
+        <rect x="3" y="4.5" width="10" height="8.5" rx="1" />
+        <path d="M3 7.5h10M5.5 2.8v3.4M10.5 2.8v3.4" />
       </>
     ),
-    dot: <circle cx="8" cy="8" r="2.6" fill="currentColor" stroke="none" />,
+    trophy: (
+      <>
+        <path d="M5.5 3.5h5v4a2.5 2.5 0 01-5 0z" />
+        <path d="M5.5 4.5H3.8a1.7 1.7 0 001.7 2.4M10.5 4.5h1.7a1.7 1.7 0 01-1.7 2.4" />
+        <path d="M6.8 10v1.8M9.2 10v1.8M5.8 11.8h4.4M6.4 13.8h3.2v-2H6.4z" />
+      </>
+    ),
+    flame: (
+      <path d="M8 2.5c1 2 .4 3.1-.4 4.2C7 7.8 6 8.9 6 10a2 2 0 004 0c0-1.4-1-2.4-1.8-3.4C7.4 5.5 8 4 8 2.5z" />
+    ),
   };
 
   return (

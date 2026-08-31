@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { Botao } from './Botao';
 import { mensagemErro } from '../lib/errors';
 import type { Usuario } from '../types';
@@ -11,7 +12,7 @@ interface SecaoVinculoProps {
   onErro: (mensagem: string) => void;
 }
 
-/** Coluna de apoio: vínculo em uma linha discreta (ou formulário compacto). */
+/** Cartão de apoio: vínculo ativo em linha discreta ou formulário compacto. */
 export function SecaoVinculo({
   psicologo,
   carregando,
@@ -39,15 +40,20 @@ export function SecaoVinculo({
   };
 
   return (
-    <section className="ritmo-bloco" aria-label="Seu psicólogo">
-      <span className="ritmo-bloco__rotulo">Seu psicólogo</span>
+    <section className="cartao apoio-card" aria-label="Seu psicólogo">
+      <span className="apoio-card__rotulo">Seu psicólogo</span>
 
       {carregando ? (
-        <p className="ritmo-metrica__extra">Carregando…</p>
+        <p className="consistencia__extra">Carregando…</p>
       ) : psicologo ? (
         <div className="vinculo">
+          <span className="vinculo__tag">Vínculo ativo</span>
           <span className="vinculo__pessoa">{psicologo.nome}</span>
           <span className="vinculo__meta">{psicologo.email}</span>
+          <Link to="/perfil" className="ver-mais">
+            Ver no perfil
+            <IconeChevron />
+          </Link>
         </div>
       ) : (
         <form className="vinculo-form" onSubmit={aoEnviar}>
@@ -72,5 +78,13 @@ export function SecaoVinculo({
         </form>
       )}
     </section>
+  );
+}
+
+function IconeChevron() {
+  return (
+    <svg width={12} height={12} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 3.5L10.5 8L6 12.5" />
+    </svg>
   );
 }
