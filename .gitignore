@@ -1,0 +1,13 @@
+# Dependências
+node_modules/
+
+# Builds
+frontend/dist/
+*.tsbuildinfo
+
+# Dados locais do MVP (persistência JSON)
+data/
+
+# Ambiente
+.env
+.env.local
