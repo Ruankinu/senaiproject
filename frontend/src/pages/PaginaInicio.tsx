@@ -9,7 +9,6 @@ import { SecaoVinculo } from '../components/SecaoVinculo';
 import { EstadoVazio } from '../components/EstadoVazio';
 import { Esqueleto } from '../components/Esqueleto';
 import { Botao } from '../components/Botao';
-import { Barra } from '../components/Barra';
 import { Icone } from '../components/Icone';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +21,29 @@ import * as rithmo from '../lib/rithmo';
 import { formatarDiaExtenso, hojeISO, pluralizar } from '../lib/dates';
 import { mensagemErro } from '../lib/errors';
 import type { Atividade } from '../types';
+
+/** Agrupa a rotina em períodos do dia — a agenda vira um dia organizado. */
+function agruparPorPeriodo(atividades: Atividade[]) {
+  const periodos: { nome: string; itens: Atividade[] }[] = [
+    { nome: 'Manhã', itens: [] },
+    { nome: 'Tarde', itens: [] },
+    { nome: 'Noite', itens: [] },
+    { nome: 'Ao longo do dia', itens: [] },
+  ];
+
+  for (const atividade of atividades) {
+    if (!atividade.horario) {
+      periodos[3].itens.push(atividade);
+      continue;
+    }
+    const hora = Number(atividade.horario.slice(0, 2));
+    if (hora < 12) periodos[0].itens.push(atividade);
+    else if (hora < 18) periodos[1].itens.push(atividade);
+    else periodos[2].itens.push(atividade);
+  }
+
+  return periodos.filter((periodo) => periodo.itens.length > 0);
+}
 
 export function PaginaInicio() {
   const navigate = useNavigate();
@@ -82,48 +104,14 @@ export function PaginaInicio() {
   const dados = rotina.dados;
   const hoje = hojeISO();
   const temAtividades = Boolean(dados && dados.total > 0);
+  const periodos = temAtividades ? agruparPorPeriodo(dados!.atividades) : [];
 
   return (
     <div className="container">
-      <Cabecalho
-        usuario={usuario!}
-        streak={progresso.dados?.streak ?? 0}
-        onSair={aoSair}
-      />
+      <Cabecalho usuario={usuario!} onSair={aoSair} />
 
       <main className="pagina">
-        <header className="pagina__cabecalho">
-          <div>
-            <p className="rotulo-data">Hoje · {hoje}</p>
-            <h1 className="titulo-pagina">{formatarDiaExtenso(hoje)}</h1>
-            <p className="subtitulo">
-              {dados && temAtividades
-                ? `${dados.concluidas} de ${dados.total} ${pluralizar(
-                    dados.total,
-                    'atividade',
-                    'atividades',
-                  )} concluídas`
-                : 'O que você precisa fazer agora?'}
-            </p>
-          </div>
-          <Botao onClick={() => setModalAberta(true)}>
-            <Icone nome="plus" tamanho={14} />
-            Nova atividade
-          </Botao>
-        </header>
-
-        {dados && temAtividades && (
-          <div className="progresso-linha">
-            <span className="progresso-linha__texto">{dados.progresso}%</span>
-            <Barra
-              valor={dados.progresso}
-              rotulo="Progresso de hoje"
-              className="progresso-linha__trilho"
-            />
-          </div>
-        )}
-
-        {rotina.carregando && <Esqueleto />}
+        {rotina.carregando && <Esqueleto linhas={4} />}
 
         {!rotina.carregando && rotina.erro && (
           <section className="erro-painel" role="alert">
@@ -135,39 +123,108 @@ export function PaginaInicio() {
           </section>
         )}
 
-        {!rotina.carregando && !rotina.erro && dados && !temAtividades && (
-          <EstadoVazio
-            titulo="Nada planejado para hoje."
-            texto="Adicione sua primeira atividade com horário e prioridade — um dia de cada vez."
-            acao={{ rotulo: 'Nova atividade', onClick: () => setModalAberta(true) }}
-          />
-        )}
-
         {!rotina.carregando && !rotina.erro && dados && temAtividades && (
-          <section className="rotina" aria-label="Rotina de hoje">
-            {dados.atividades.map((atividade) => (
-              <LinhaAtividade
-                key={atividade.id}
-                atividade={atividade}
-                onAlternar={aoAlternar}
-                onEditar={(item) => setEditando(item)}
-                onExcluir={setParaExcluir}
-              />
-            ))}
-          </section>
+          <>
+            <section
+              className="dia-faixa"
+              aria-label={`Seu dia: ${formatarDiaExtenso(hoje)}`}
+            >
+              <div>
+                <p className="dia-faixa__eyebrow">{formatarDiaExtenso(hoje)}</p>
+                <h1 className="dia-faixa__titulo">Seu dia.</h1>
+              </div>
+              <div className="dia-faixa__meta">
+                <span className="dia-faixa__fracao">
+                  {dados.concluidas}/{dados.total}
+                </span>
+                <span className="dia-faixa__legenda">
+                  {pluralizar(dados.total, 'atividade concluída', 'atividades concluídas')}
+                </span>
+                <span
+                  className="dia-faixa__barra"
+                  role="progressbar"
+                  aria-valuenow={dados.progresso}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Progresso de hoje"
+                >
+                  <i style={{ width: `${dados.progresso}%` }} />
+                </span>
+              </div>
+            </section>
+
+            <div className="grade-dia">
+              <section className="coluna-rotina" aria-label="Sua rotina de hoje">
+                <header className="rotina-cabecalho">
+                  <div>
+                    <h2 className="rotina-cabecalho__titulo">Sua rotina</h2>
+                    <p className="rotina-cabecalho__legenda">
+                      {dados.concluidas} de {dados.total} — um dia de cada vez.
+                    </p>
+                  </div>
+                  <Botao onClick={() => setModalAberta(true)}>
+                    <Icone nome="plus" tamanho={14} />
+                    Nova atividade
+                  </Botao>
+                </header>
+
+                <div className="agenda">
+                  {periodos.map((periodo) => (
+                    <section
+                      className="agenda__grupo"
+                      key={periodo.nome}
+                      aria-label={periodo.nome}
+                    >
+                      <h3 className="agenda__rotulo">{periodo.nome}</h3>
+                      {periodo.itens.map((atividade) => (
+                        <LinhaAtividade
+                          key={atividade.id}
+                          atividade={atividade}
+                          onAlternar={aoAlternar}
+                          onEditar={(item) => setEditando(item)}
+                          onExcluir={setParaExcluir}
+                        />
+                      ))}
+                    </section>
+                  ))}
+                </div>
+              </section>
+
+              <aside className="coluna-apoio">
+                {progresso.dados && (
+                  <SecaoConsistencia progresso={progresso.dados} />
+                )}
+                <SecaoVinculo
+                  psicologo={vinculo.psicologo}
+                  carregando={vinculo.carregando}
+                  onVincular={aoVincular}
+                  onSucesso={(mensagem) => toast.mostrar(mensagem)}
+                  onErro={(mensagem) => toast.mostrar(mensagem, 'erro')}
+                />
+              </aside>
+            </div>
+          </>
         )}
 
-        {progresso.dados && (
-          <SecaoConsistencia progresso={progresso.dados} />
+        {!rotina.carregando && !rotina.erro && dados && !temAtividades && (
+          <>
+            <section className="dia-faixa">
+              <div>
+                <p className="dia-faixa__eyebrow">{formatarDiaExtenso(hoje)}</p>
+                <h1 className="dia-faixa__titulo">Seu dia.</h1>
+              </div>
+              <div className="dia-faixa__meta">
+                <span className="dia-faixa__fracao">0/0</span>
+                <span className="dia-faixa__legenda">ainda sem atividades</span>
+              </div>
+            </section>
+            <EstadoVazio
+              titulo="Nada planejado para hoje."
+              texto="Adicione sua primeira atividade com horário e prioridade — um dia de cada vez."
+              acao={{ rotulo: 'Nova atividade', onClick: () => setModalAberta(true) }}
+            />
+          </>
         )}
-
-        <SecaoVinculo
-          psicologo={vinculo.psicologo}
-          carregando={vinculo.carregando}
-          onVincular={aoVincular}
-          onSucesso={(mensagem) => toast.mostrar(mensagem)}
-          onErro={(mensagem) => toast.mostrar(mensagem, 'erro')}
-        />
       </main>
 
       <ModalAtividade

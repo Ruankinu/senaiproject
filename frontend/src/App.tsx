@@ -11,8 +11,8 @@ import type { Perfil } from './types';
 function TelaCarregando() {
   return (
     <main className="auth">
-      <div className="auth__cartao auth__cartao--carregando" aria-hidden="true">
-        <span className="marca__pulso" />
+      <div className="tela-carregando" aria-hidden="true">
+        <span className="tela-carregando__pulso" />
       </div>
     </main>
   );

@@ -45,36 +45,33 @@ export function PaginaLogin() {
   };
 
   return (
-    <main className="auth">
-      <aside className="auth__marca">
+    <main className="acesso">
+      <aside className="acesso__marca">
+        <span className="acesso__pauta" aria-hidden="true" />
         <Link to="/" className="marca" aria-label="RITHMO">
           <span className="marca__pulso" aria-hidden="true" />
           <span className="marca__nome">RITHMO</span>
         </Link>
 
-        <div className="auth__frase">
+        <div className="acesso__frase">
           <span>Seu ritmo.</span>
           <span>Um dia de <em>cada vez</em>.</span>
         </div>
 
         <div>
-          <p className="auth__nota">
-            Rotina, consistência e acompanhamento — entre você e seu
-            psicólogo, no mesmo lugar.
-          </p>
-          <p className="auth__demo">
-            Ambiente de demonstração: pacientes <code>ana@rithmo.app</code> e{' '}
-            <code>lucas@rithmo.app</code> · psicóloga{' '}
-            <code>psicologa@rithmo.app</code> (senha <code>123456</code>)
+          <p className="acesso__demo">
+            pacientes: ana@rithmo.app · lucas@rithmo.app ·
+            psicóloga: psicologa@rithmo.app (senha 123456)
           </p>
         </div>
       </aside>
 
-      <section className="auth__painel">
-        <div className="auth__painel-interno">
-          <h1 className="auth__titulo">Entrar</h1>
-          <p className="auth__subtitulo">
-            Continue de onde parou — sua rotina espera.
+      <section className="acesso__painel">
+        <div className="acesso__painel-interno">
+          <p className="acesso__eyebrow">Acesso</p>
+          <h1 className="acesso__titulo">Entrar</h1>
+          <p className="acesso__subtitulo">
+            Continue o seu dia — a rotina espera.
           </p>
 
           <form className="formulario" onSubmit={aoEnviar} noValidate>
@@ -117,7 +114,7 @@ export function PaginaLogin() {
             </Botao>
           </form>
 
-          <p className="auth__rodape">
+          <p className="acesso__rodape">
             Ainda não tem conta? <Link to="/registro">Criar conta</Link>
           </p>
         </div>

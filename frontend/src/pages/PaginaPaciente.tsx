@@ -16,10 +16,35 @@ import {
   rotuloRelativo,
   somarDiasISO,
 } from '../lib/dates';
+import type { Atividade } from '../types';
+import type { RotinaDia } from '../types';
+
+/** Agrupa a rotina do paciente em períodos do dia. */
+function agruparPorPeriodo(atividades: Atividade[]) {
+  const periodos: { nome: string; itens: Atividade[] }[] = [
+    { nome: 'Manhã', itens: [] },
+    { nome: 'Tarde', itens: [] },
+    { nome: 'Noite', itens: [] },
+    { nome: 'Ao longo do dia', itens: [] },
+  ];
+
+  for (const atividade of atividades) {
+    if (!atividade.horario) {
+      periodos[3].itens.push(atividade);
+      continue;
+    }
+    const hora = Number(atividade.horario.slice(0, 2));
+    if (hora < 12) periodos[0].itens.push(atividade);
+    else if (hora < 18) periodos[1].itens.push(atividade);
+    else periodos[2].itens.push(atividade);
+  }
+
+  return periodos.filter((periodo) => periodo.itens.length > 0);
+}
 
 /**
- * Visão do psicólogo sobre a rotina do paciente: acompanhamento,
- * sem diagnóstico e sem prontuário. Permite navegar entre dias reais.
+ * Visão do psicólogo: acompanhamento da rotina, sem prontuário.
+ * O dia abre na faixa de tinta; a rotina domina; histórico no apoio.
  */
 export function PaginaPaciente() {
   const { id } = useParams<{ id: string }>();
@@ -29,15 +54,18 @@ export function PaginaPaciente() {
   const [dia, setDia] = useState(hojeISO());
 
   const { resumo, rotina } = usePacienteDetalhe(idNumerico, dia);
-  const rotinaDoDia = rotina.dados;
+  const rotinaDoDia: RotinaDia | null | undefined = rotina.dados;
 
   const aoSair = () => {
     sair();
     navigate('/login', { replace: true });
   };
 
-  const nomePaciente = resumo.dados ? 'Rotina do paciente' : 'Paciente';
   const relativo = rotuloRelativo(dia);
+  const periodos =
+    rotinaDoDia && rotinaDoDia.total > 0
+      ? agruparPorPeriodo(rotinaDoDia.atividades)
+      : [];
 
   return (
     <div className="container">
@@ -63,48 +91,60 @@ export function PaginaPaciente() {
           </section>
         ) : (
           <>
-            <header className="pagina__cabecalho">
+            <section
+              className="dia-faixa"
+              aria-label={`Rotina de ${formatarDiaExtenso(dia)}`}
+            >
               <div>
-                <p className="rotulo-data">Rotina de hoje</p>
-                <h1 className="titulo-pagina">{nomePaciente}</h1>
-                <p className="subtitulo">
-                  {formatarDiaCurto(dia)}
-                  {' · '}
-                  {(rotinaDoDia?.concluidas ?? 0)} de{' '}
-                  {(rotinaDoDia?.total ?? 0)}{' '}
-                  {pluralizar(rotinaDoDia?.total ?? 0, 'atividade', 'atividades')}{' '}
-                  concluídas
+                <p className="dia-faixa__eyebrow">
+                  {relativo ? `${relativo} · ` : ''}
+                  {formatarDiaExtenso(dia)}
                 </p>
+                <h1 className="dia-faixa__titulo">Rotina</h1>
               </div>
-            </header>
 
-            <nav className="pagina__nav-dia" aria-label="Navegar entre dias">
-              <button
-                type="button"
-                className="btn btn--icone"
-                aria-label="Dia anterior"
-                onClick={() => setDia(somarDiasISO(dia, -1))}
-              >
-                <Icone nome="arrow-left" tamanho={14} />
-              </button>
-              <span className="nav-dia__alvo">
-                {relativo ? `${relativo} · ` : ''}
-                {formatarDiaExtenso(dia)}
-              </span>
-              <button
-                type="button"
-                className="btn btn--icone"
-                aria-label="Próximo dia"
-                onClick={() => setDia(somarDiasISO(dia, 1))}
-              >
-                <Icone nome="chevron-right" tamanho={14} />
-              </button>
-              {dia !== hojeISO() && (
-                <Botao variante="fantasma" onClick={() => setDia(hojeISO())}>
-                  Hoje
-                </Botao>
-              )}
-            </nav>
+              <div className="dia-faixa__meta">
+                <span className="dia-faixa__fracao">
+                  {(rotinaDoDia?.concluidas ?? 0)}/{rotinaDoDia?.total ?? 0}
+                </span>
+                <span className="dia-faixa__legenda">
+                  {pluralizar(
+                    rotinaDoDia?.total ?? 0,
+                    'atividade concluída',
+                    'atividades concluídas',
+                  )}
+                </span>
+                <nav
+                  className="dia-faixa__navegar"
+                  aria-label="Navegar entre dias"
+                >
+                  <button
+                    type="button"
+                    className="btn btn--icone"
+                    aria-label="Dia anterior"
+                    onClick={() => setDia(somarDiasISO(dia, -1))}
+                  >
+                    <Icone nome="arrow-left" tamanho={14} />
+                  </button>
+                  <span className="dia-faixa__alvo">
+                    {formatarDiaCurto(dia)}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn--icone"
+                    aria-label="Próximo dia"
+                    onClick={() => setDia(somarDiasISO(dia, 1))}
+                  >
+                    <Icone nome="chevron-right" tamanho={14} />
+                  </button>
+                  {dia !== hojeISO() && (
+                    <Botao variante="fantasma" onClick={() => setDia(hojeISO())}>
+                      Hoje
+                    </Botao>
+                  )}
+                </nav>
+              </div>
+            </section>
 
             <div className="resumo-linha" aria-label="Resumo da rotina">
               <span className="resumo-linha__item">
@@ -137,59 +177,116 @@ export function PaginaPaciente() {
             )}
 
             {rotinaDoDia && rotinaDoDia.total > 0 && (
-              <section
-                className="rotina"
-                aria-label={`Atividades de ${formatarDiaExtenso(dia)}`}
-              >
-                {rotinaDoDia.atividades.map((atividade) => (
-                  <LinhaAtividade
-                    key={atividade.id}
-                    atividade={atividade}
-                    somenteLeitura
-                  />
-                ))}
-              </section>
-            )}
+              <div className="grade-dia">
+                <section
+                  className="coluna-rotina"
+                  aria-label={`Atividades de ${formatarDiaExtenso(dia)}`}
+                >
+                  <header className="rotina-cabecalho">
+                    <div>
+                      <h2 className="rotina-cabecalho__titulo">Sua rotina</h2>
+                      <p className="rotina-cabecalho__legenda">
+                        {formatarDiaCurto(dia)} — dados reais da rotina.
+                      </p>
+                    </div>
+                  </header>
 
-            <section className="secao" aria-label="Últimos 7 dias">
-              <header className="secao__cabecalho">
-                <div>
-                  <h2 className="secao__titulo">Últimos 7 dias</h2>
-                  <p className="secao__legenda">
-                    Execução diária — dados reais da rotina.
-                  </p>
-                </div>
-              </header>
+                  <div className="agenda">
+                    {periodos.map((periodo) => (
+                      <section
+                        className="agenda__grupo"
+                        key={periodo.nome}
+                        aria-label={periodo.nome}
+                      >
+                        <h3 className="agenda__rotulo">{periodo.nome}</h3>
+                        {periodo.itens.map((atividade) => (
+                          <LinhaAtividade
+                            key={atividade.id}
+                            atividade={atividade}
+                            somenteLeitura
+                          />
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+                </section>
 
-              <div className="historico">
-                {resumo.dados.ultimos7
-                  .slice()
-                  .reverse()
-                  .map((diaResumo) => {
-                    const percentual =
-                      diaResumo.total === 0
-                        ? 0
-                        : Math.round(
-                            (diaResumo.concluidas / diaResumo.total) * 100,
+                <aside className="coluna-apoio">
+                  <section className="ritmo-bloco" aria-label="Ritmo do paciente">
+                    <span className="ritmo-bloco__rotulo">Ritmo</span>
+                    <div className="ritmo-metrica">
+                      <span className="ritmo-metrica__numero">
+                        {resumo.dados.progresso.streak}
+                      </span>
+                      <span className="ritmo-metrica__texto">
+                        {pluralizar(
+                          resumo.dados.progresso.streak,
+                          'dia',
+                          'dias',
+                        )}{' '}
+                        de consistência
+                      </span>
+                      {resumo.dados.progresso.badges.filter((b) => b.aberta)
+                        .length > 0 && (
+                        <span className="ritmo-metrica__extra">
+                          {resumo.dados.progresso.badges.filter((b) => b.aberta)
+                            .length}{' '}
+                          conquista
+                          {resumo.dados.progresso.badges.filter((b) => b.aberta)
+                            .length > 1
+                            ? 's'
+                            : ''}{' '}
+                          aberta
+                          {resumo.dados.progresso.badges.filter(
+                            (b) => b.aberta,
+                          ).length > 1
+                            ? 's'
+                            : ''}
+                        </span>
+                      )}
+                    </div>
+                  </section>
+
+                  <section
+                    className="ritmo-bloco"
+                    aria-label="Últimos 7 dias"
+                  >
+                    <span className="ritmo-bloco__rotulo">Últimos 7 dias</span>
+                    <div className="historico">
+                      {resumo.dados.ultimos7
+                        .slice()
+                        .reverse()
+                        .map((diaResumo) => {
+                          const percentual =
+                            diaResumo.total === 0
+                              ? 0
+                              : Math.round(
+                                  (diaResumo.concluidas / diaResumo.total) * 100,
+                                );
+                          return (
+                            <div
+                              key={diaResumo.data}
+                              className="historico__dia"
+                            >
+                              <span className="historico__rotulo">
+                                {formatarDiaCurto(diaResumo.data)}
+                              </span>
+                              <Barra
+                                valor={percentual}
+                                rotulo={`${diaResumo.concluidas} de ${diaResumo.total} atividades concluídas`}
+                                className="historico__trilho"
+                              />
+                              <span className="historico__valor">
+                                {diaResumo.concluidas}/{diaResumo.total}
+                              </span>
+                            </div>
                           );
-                    return (
-                      <div key={diaResumo.data} className="historico__dia">
-                        <span className="historico__rotulo">
-                          {formatarDiaCurto(diaResumo.data)}
-                        </span>
-                        <Barra
-                          valor={percentual}
-                          rotulo={`${diaResumo.concluidas} de ${diaResumo.total} atividades concluídas`}
-                          className="historico__trilho"
-                        />
-                        <span className="historico__valor">
-                          {diaResumo.concluidas}/{diaResumo.total}
-                        </span>
-                      </div>
-                    );
-                  })}
+                        })}
+                    </div>
+                  </section>
+                </aside>
               </div>
-            </section>
+            )}
           </>
         )}
       </main>

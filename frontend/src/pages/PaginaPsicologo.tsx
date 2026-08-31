@@ -43,32 +43,28 @@ export function PaginaPsicologo() {
       <Cabecalho usuario={usuario!} onSair={aoSair} />
 
       <main className="pagina">
-        <header className="pagina__cabecalho">
+        <header className="cabecalho-pagina">
           <div>
             <p className="rotulo-data">Acompanhamento</p>
-            <h1 className="titulo-pagina">Meus pacientes</h1>
+            <h1 className="titulo-pagina">Pacientes</h1>
             <p className="subtitulo">
               {lista.length}{' '}
               {pluralizar(lista.length, 'paciente vinculado', 'pacientes vinculados')}
             </p>
           </div>
-        </header>
 
-        <section className="secao codigo-secao" aria-label="Código de vínculo">
-          <div className="codigo">
-            <div className="codigo__info">
-              <span className="vinculo__rotulo">Código de vínculo</span>
-              <p className="codigo__valor">{usuario?.codigo ?? '—'}</p>
-              <p className="codigo__descricao">
-                Compartilhe com seus pacientes — eles entram com este código.
-              </p>
-            </div>
+          <div className="selo-codigo" aria-label="Código de vínculo">
+            <span className="selo-codigo__rotulo">Código de vínculo</span>
+            <span className="selo-codigo__valor">{usuario?.codigo ?? '—'}</span>
+            <span className="selo-codigo__descricao">
+              Compartilhe — seus pacientes entram com este código.
+            </span>
             <Botao variante="fantasma" onClick={() => void aoCopiar()}>
               <Icone nome="copy" tamanho={14} />
-              {copiado ? 'Copiado' : 'Copiar código'}
+              {copiado ? 'Copiado' : 'Copiar'}
             </Botao>
           </div>
-        </section>
+        </header>
 
         {pacientes.carregando && <Esqueleto linhas={3} />}
 
@@ -90,7 +86,7 @@ export function PaginaPsicologo() {
         )}
 
         {!pacientes.carregando && !pacientes.erro && lista.length > 0 && (
-          <section className="pacientes" aria-label="Pacientes vinculados">
+          <section className="tabela-pacientes" aria-label="Pacientes vinculados">
             {lista.map((paciente) => (
               <PacienteLinha key={paciente.id} paciente={paciente} />
             ))}

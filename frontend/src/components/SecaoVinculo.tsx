@@ -11,7 +11,7 @@ interface SecaoVinculoProps {
   onErro: (mensagem: string) => void;
 }
 
-/** Área de vínculo do paciente: estado atual ou entrada do código. */
+/** Coluna de apoio: vínculo em uma linha discreta (ou formulário compacto). */
 export function SecaoVinculo({
   psicologo,
   carregando,
@@ -39,26 +39,18 @@ export function SecaoVinculo({
   };
 
   return (
-    <section className="secao" aria-label="Seu psicólogo">
-      <header className="secao__cabecalho">
-        <div>
-          <h2 className="secao__titulo">Seu psicólogo</h2>
-          <p className="secao__legenda">
-            Compartilha sua rotina com quem acompanha você.
-          </p>
-        </div>
-      </header>
+    <section className="ritmo-bloco" aria-label="Seu psicólogo">
+      <span className="ritmo-bloco__rotulo">Seu psicólogo</span>
 
       {carregando ? (
-        <p className="secao__legenda">Carregando…</p>
+        <p className="ritmo-metrica__extra">Carregando…</p>
       ) : psicologo ? (
         <div className="vinculo">
-          <span className="vinculo__rotulo">Vínculo ativo</span>
           <span className="vinculo__pessoa">{psicologo.nome}</span>
           <span className="vinculo__meta">{psicologo.email}</span>
         </div>
       ) : (
-        <form className="formulario vinculo-form" onSubmit={aoEnviar}>
+        <form className="vinculo-form" onSubmit={aoEnviar}>
           <div className="campo campo--regua vinculo-form__campo">
             <label htmlFor="campo-codigo">Código do psicólogo</label>
             <input
@@ -74,11 +66,9 @@ export function SecaoVinculo({
               Peça o código ao seu psicólogo — ele aparece na conta dele.
             </p>
           </div>
-          <div>
-            <Botao type="submit" carregando={enviando}>
-              Vincular
-            </Botao>
-          </div>
+          <Botao type="submit" carregando={enviando}>
+            Vincular
+          </Botao>
         </form>
       )}
     </section>

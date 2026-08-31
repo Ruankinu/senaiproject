@@ -7,51 +7,45 @@ interface SecaoConsistenciaProps {
 }
 
 /**
- * Consistência como parte natural da rotina: um número sóbrio + conquistas
- * com identidade própria (sem emoji de medalha, sem festa visual).
+ * Coluna de apoio da Home: o ritmo em um número sóbrio + conquistas como
+ * selos colecionáveis (sinete, nome e progresso) — nunca emoji ou festa.
  */
 export function SecaoConsistencia({ progresso }: SecaoConsistenciaProps) {
   const { streak, melhorStreak, badges } = progresso;
 
   return (
-    <section className="secao" aria-label="Sua consistência">
-      <header className="secao__cabecalho">
-        <div>
-          <h2 className="secao__titulo">Consistência</h2>
-          <p className="secao__legenda">
-            Um dia de cada vez — cada dia concluído faz a sequência crescer.
-          </p>
-        </div>
-      </header>
+    <section className="ritmo-bloco" aria-label="Sua consistência">
+      <span className="ritmo-bloco__rotulo">Seu ritmo</span>
 
-      <div className="consistencia__linha">
-        <span className="consistencia__numero">
-          <b>{streak}</b>
+      <div className="ritmo-metrica">
+        <span className="ritmo-metrica__numero">{streak}</span>
+        <span className="ritmo-metrica__texto">
           {pluralizar(streak, 'dia', 'dias')} de consistência
         </span>
         {melhorStreak > streak && melhorStreak > 0 && (
-          <span className="consistencia__melhor">
+          <span className="ritmo-metrica__extra">
             melhor sequência: {melhorStreak} dias
           </span>
         )}
       </div>
 
-      <ul className="badges">
+      <span className="ritmo-bloco__rotulo" style={{ marginTop: 22 }}>
+        Conquistas
+      </span>
+      <ul className="selos">
         {badges.map((badge) => (
           <li
             key={badge.id}
-            className={`badge${badge.aberta ? ' badge--aberta' : ''}`}
+            className={`selo${badge.aberta ? ' selo--aberta' : ''}`}
           >
-            <span className="badge__marca" aria-hidden="true">
+            <span className="selo__sinete" aria-hidden="true">
               {badge.aberta ? <Icone nome="check" tamanho={12} /> : null}
             </span>
-            <span className="badge__texto">
-              <span className="badge__nome">{badge.nome}</span>
-              <span className="badge__progresso">
-                {badge.aberta
-                  ? 'Desbloqueada'
-                  : `${badge.progresso}/${badge.meta} dias`}
-              </span>
+            <span className="selo__nome">{badge.nome}</span>
+            <span className="selo__progresso">
+              {badge.aberta
+                ? 'OK'
+                : `${badge.progresso}/${badge.meta}`}
             </span>
           </li>
         ))}

@@ -9,10 +9,10 @@ interface CabecalhoProps {
 }
 
 /**
- * Navegação mínima: marca à esquerda, contexto e saída à direita.
- * Sem sidebar — cada perfil tem uma tela principal.
+ * Barra superior do produto: marca à esquerda, contexto e saída à direita.
+ * Nota: o streak agora vive na coluna de ritmo da Home — aqui só contexto.
  */
-export function Cabecalho({ usuario, streak = 0, onSair }: CabecalhoProps) {
+export function Cabecalho({ usuario, onSair }: CabecalhoProps) {
   const primeiroNome = usuario.nome.split(' ')[0];
 
   return (
@@ -27,11 +27,13 @@ export function Cabecalho({ usuario, streak = 0, onSair }: CabecalhoProps) {
       </Link>
 
       <div className="cabecalho__direita">
-        {usuario.perfil === 'paciente' && streak > 0 && (
-          <span className="streak-mini" title="Dias seguidos de consistência">
-            <b>{streak}</b> dias
-          </span>
-        )}
+        <span className="cabecalho__data">
+          {new Date().toLocaleDateString('pt-BR', {
+            weekday: 'short',
+            day: '2-digit',
+            month: 'short',
+          })}
+        </span>
         <span className="cabecalho__usuario">{primeiroNome}</span>
         <button
           type="button"

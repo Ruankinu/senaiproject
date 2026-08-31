@@ -54,49 +54,55 @@ export function PaginaRegistro() {
   };
 
   return (
-    <main className="auth">
-      <aside className="auth__marca">
+    <main className="acesso">
+      <aside className="acesso__marca">
+        <span className="acesso__pauta" aria-hidden="true" />
         <Link to="/" className="marca" aria-label="RITHMO">
           <span className="marca__pulso" aria-hidden="true" />
           <span className="marca__nome">RITHMO</span>
         </Link>
 
-        <div className="auth__frase">
+        <div className="acesso__frase">
           <span>Um novo ritmo</span>
           <span>começa <em>hoje</em>.</span>
         </div>
 
         <div>
-          <p className="auth__nota">
-            Crie sua conta em menos de um minuto — como paciente ou como
-            psicólogo.
+          <p className="acesso__demo">
+            protótipo — crie uma conta local ou use as contas demo na tela de
+            entrada.
           </p>
         </div>
       </aside>
 
-      <section className="auth__painel">
-        <div className="auth__painel-interno">
-          <h1 className="auth__titulo">Criar conta</h1>
-          <p className="auth__subtitulo">Escolha seu ponto de partida.</p>
+      <section className="acesso__painel">
+        <div className="acesso__painel-interno">
+          <p className="acesso__eyebrow">Começar</p>
+          <h1 className="acesso__titulo">Criar conta</h1>
+          <p className="acesso__subtitulo">Escolha o seu ponto de partida.</p>
 
           <div className="campo">
             <legend className="campo__legenda">
               Como você usa o RITHMO?
             </legend>
-            <div className="perfil-cards" role="radiogroup" aria-label="Perfil">
+            <div
+              className="perfil-opcoes"
+              role="radiogroup"
+              aria-label="Perfil"
+            >
               {PERFIS.map((opcao) => (
                 <button
                   key={opcao.id}
                   type="button"
                   role="radio"
                   aria-checked={perfil === opcao.id}
-                  className={`perfil-card${
-                    perfil === opcao.id ? ' perfil-card--ativo' : ''
+                  className={`perfil-opcao${
+                    perfil === opcao.id ? ' perfil-opcao--ativo' : ''
                   }`}
                   onClick={() => setPerfil(opcao.id)}
                 >
-                  <span className="perfil-card__marca" aria-hidden="true" />
-                  <span className="perfil-card__texto">
+                  <span className="perfil-opcao__marca" aria-hidden="true" />
+                  <span className="perfil-opcao__texto">
                     <strong>{opcao.titulo}</strong>
                     <small>{opcao.descricao}</small>
                   </span>
@@ -153,7 +159,7 @@ export function PaginaRegistro() {
             </Botao>
           </form>
 
-          <p className="auth__rodape">
+          <p className="acesso__rodape">
             Já tem conta? <Link to="/login">Entrar</Link>
           </p>
         </div>
