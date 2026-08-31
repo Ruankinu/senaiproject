@@ -28,7 +28,7 @@ export function Cabecalho({ usuario, onSair }: CabecalhoProps) {
   return (
     <header className="cabecalho">
       <Link to={itens[0].to} className="cabecalho__marca" aria-label="RITHMO — início">
-        <Marca tamanho="pequena" />
+        <Marca lockup={false} tamanho="pequena" />
       </Link>
 
       <nav className="cabecalho__nav" aria-label="Navegação principal">

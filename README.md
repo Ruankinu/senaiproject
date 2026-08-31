@@ -53,7 +53,10 @@ notificações ou prontuário clínico.
 - React Router (rotas SPA)
 - CSS puro (sem Tailwind, sem biblioteca de UI) — sistema de identidade em
   `frontend/src/styles/global.css`
-- Fontes locais via Fontsource (Manrope, Space Grotesk, Quicksand)
+- Fontes locais via Fontsource (Manrope, Space Grotesk)
+- Marca: asset oficial em PNG (`frontend/public/rithmo-*.png`), gerado a
+  partir do arquivo enviado pelo usuário (`fca24f18-*.jpg`) — nada de
+  redesenho em SVG/CSS
 
 ---
 

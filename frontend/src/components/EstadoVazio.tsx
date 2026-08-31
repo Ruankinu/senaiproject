@@ -1,4 +1,5 @@
 import { Botao } from './Botao';
+import { Marca } from './Marca';
 
 interface EstadoVazioProps {
   titulo: string;
@@ -10,9 +11,7 @@ interface EstadoVazioProps {
 export function EstadoVazio({ titulo, texto, acao }: EstadoVazioProps) {
   return (
     <div className="estado-vazio">
-      <span className="estado-vazio__marca" aria-hidden="true">
-        <i />
-      </span>
+      <Marca comPalavra={false} tamanho="grande" className="estado-vazio__marca" />
       <h2>{titulo}</h2>
       <p>{texto}</p>
       {acao && <Botao onClick={acao.onClick}>{acao.rotulo}</Botao>}

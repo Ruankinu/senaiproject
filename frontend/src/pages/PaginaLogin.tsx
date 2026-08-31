@@ -49,7 +49,7 @@ export function PaginaLogin() {
     <main className="acesso">
       <aside className="acesso__marca">
         <div className="acesso__logo">
-          <Marca tamanho="grande" className="marca-marca--sobre-roxo" />
+          <Marca lockup tamanho="grande" />
         </div>
 
         <p className="acesso__frase">

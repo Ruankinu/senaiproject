@@ -14,7 +14,7 @@ function TelaCarregando() {
   return (
     <main className="tela-carregando">
       <span className="tela-carregando__pulso">
-        <Marca tamanho="media" />
+        <Marca lockup tamanho="media" />
       </span>
     </main>
   );

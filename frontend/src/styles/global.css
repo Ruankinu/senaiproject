@@ -3,15 +3,16 @@
    --------------------------------------------------------------------------
    Roxo escuro + branco + verde funcional. Produto digital premium:
    superfícies claras, cards quando agrupam de fato, sombras leves,
-   raio 10–18px, tipografia Manrope (UI) + Space Grotesk (display/números)
-   + Quicksand (wordmark da marca). Sem papel, terracota, Fraunces ou
-   estética editorial.
+   raio 10–18px, tipografia Manrope (UI) + Space Grotesk (display/números).
+   A marca usa o asset oficial (símbolo + wordmark em PNG) — nada é
+   redesenhado em CSS/SVG. Sem papel, terracota, Fraunces ou estética
+   editorial.
    ========================================================================== */
 
 :root {
   /* Cor */
   --fundo: #f7f6fb;
-  --superficie: #ffffff;
+  --superficie: var(--branco);
   --superficie-2: #f1eff8;
 
   --roxo-escuro: #1e1233;
@@ -25,6 +26,8 @@
   --roxo-100: #ede9fe;
   --roxo-50: #f5f3ff;
 
+  --branco: #ffffff;
+  --nave: #010510; /* fundo do asset oficial da marca */
   --tinta: #1c1526;
   --tinta-2: #544b66;
   --tinta-3: #8b8399;
@@ -36,6 +39,8 @@
   --verde-escuro: #15803d;
   --verde-claro: #dcfce7;
   --verde-linha: #bbf7d0;
+  --verde-brilho: #86efac;
+  --verde-400: #4ade80;
 
   --perigo: #dc2626;
   --perigo-escuro: #b91c1c;
@@ -48,7 +53,6 @@
   /* Tipografia */
   --fonte-ui: 'Manrope Variable', 'Manrope', system-ui, -apple-system, sans-serif;
   --fonte-display: 'Space Grotesk Variable', 'Space Grotesk', system-ui, sans-serif;
-  --fonte-marca: 'Quicksand Variable', 'Quicksand', system-ui, sans-serif;
 
   /* Escala */
   --t-10: 10px;
@@ -137,49 +141,72 @@ code {
   text-decoration: none;
 }
 
-.marca-marca__simbolo {
+.marca-marca__imagem {
   display: block;
   flex: none;
+  object-fit: contain;
 }
 
-.marca-marca--pequena .marca-marca__simbolo {
-  width: 26px;
-  height: 26px;
+.marca-marca--pequena:not(.marca-marca--lockup) .marca-marca__imagem {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
 }
 
-.marca-marca--pequena .marca-marca__palavra {
-  font-size: 19px;
+.marca-marca--media:not(.marca-marca--lockup) .marca-marca__imagem {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
 }
 
-.marca-marca--media .marca-marca__simbolo {
-  width: 34px;
-  height: 34px;
+.marca-marca--grande:not(.marca-marca--lockup) .marca-marca__imagem {
+  width: 120px;
+  height: 120px;
+  border-radius: 26px;
 }
 
-.marca-marca--media .marca-marca__palavra {
-  font-size: 24px;
+/* Lockup horizontal real (símbolo + wordmark lado a lado) */
+.marca-marca--horizontal .marca-marca__imagem {
+  aspect-ratio: 1024 / 268;
+  object-fit: cover;
 }
 
-.marca-marca--grande .marca-marca__simbolo {
-  width: 64px;
-  height: 64px;
+.marca-marca--horizontal.marca-marca--pequena .marca-marca__imagem {
+  width: 124px;
+  height: auto;
+  border-radius: 9px;
 }
 
-.marca-marca--grande .marca-marca__palavra {
-  font-size: 42px;
+.marca-marca--horizontal.marca-marca--media .marca-marca__imagem {
+  width: 152px;
+  height: auto;
+  border-radius: 11px;
 }
 
-.marca-marca__palavra {
-  font-family: var(--fonte-marca);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--roxo-escuro);
+/* Lockup completo (asset oficial): sempre como badge arredondado */
+.marca-marca--pequena.marca-marca--lockup .marca-marca__imagem {
+  width: 84px;
+  height: 84px;
+  border-radius: 20px;
 }
 
-.marca-marca--sobre-roxo .marca-marca__palavra {
-  color: #ffffff;
+.marca-marca--media.marca-marca--lockup .marca-marca__imagem {
+  width: 120px;
+  height: 120px;
+  border-radius: 26px;
 }
+
+.marca-marca--grande.marca-marca--lockup .marca-marca__imagem {
+  width: 176px;
+  height: 176px;
+  border-radius: 32px;
+}
+
+.marca-marca--lockup .marca-marca__imagem {
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--nave) 35%, transparent);
+}
+
+
 
 /* --------------------------------------------------------------------------
    Estrutura geral
@@ -200,8 +227,8 @@ code {
   align-items: center;
   gap: var(--s-4);
   min-height: 66px;
-  padding: 0;
-  background: rgba(255, 255, 255, 0.92);
+  padding: 0 clamp(20px, 4vw, 32px);
+  background: color-mix(in srgb, var(--branco) 92%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--linha);
 }
@@ -288,7 +315,7 @@ code {
   font-size: 13.5px;
   font-weight: 700;
   letter-spacing: 0.005em;
-  color: #ffffff;
+  color: var(--branco);
   background: var(--roxo-600);
   text-decoration: none;
   cursor: pointer;
@@ -372,7 +399,7 @@ code {
   width: 13px;
   height: 13px;
   flex: none;
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  border: 2px solid color-mix(in srgb, var(--branco) 35%, transparent);
   border-top-color: currentColor;
   border-radius: 50%;
   animation: girar 0.7s linear infinite;
@@ -451,7 +478,7 @@ code {
   padding: clamp(22px, 3.4vw, 32px);
   background: var(--roxo-escuro);
   border-radius: var(--radius-hero);
-  color: #ffffff;
+  color: var(--branco);
   position: relative;
   overflow: hidden;
 }
@@ -464,7 +491,7 @@ code {
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.35), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--roxo-400) 35%, transparent), transparent 70%);
   pointer-events: none;
 }
 
@@ -488,14 +515,14 @@ code {
 .progresso-hero__texto {
   margin: 8px 0 0;
   font-size: var(--t-13);
-  color: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--branco) 72%, transparent);
 }
 
 .progresso-hero__barra {
   margin-top: var(--s-5);
   height: 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in srgb, var(--branco) 16%, transparent);
   overflow: hidden;
 }
 
@@ -527,7 +554,7 @@ code {
   display: block;
   margin-top: 6px;
   font-size: var(--t-12);
-  color: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--branco) 72%, transparent);
 }
 
 .progresso-hero__pct {
@@ -537,11 +564,11 @@ code {
   margin-top: 14px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(22, 163, 74, 0.22);
-  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: color-mix(in srgb, var(--verde) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--verde-400) 35%, transparent);
   font-size: var(--t-12);
   font-weight: 700;
-  color: #86efac;
+  color: var(--verde-brilho);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1397,13 +1424,13 @@ code {
   width: 84px;
   height: 84px;
   border-radius: 20px;
-  background: var(--roxo-escuro);
-  border: 1px solid var(--roxo-900);
+  overflow: hidden;
 }
 
-.perfil-hero__avatar svg {
-  width: 48px;
-  height: 48px;
+.perfil-hero__avatar .marca-marca__imagem {
+  width: 84px;
+  height: 84px;
+  border-radius: 0;
 }
 
 .perfil-hero__identidade {
@@ -1605,7 +1632,7 @@ code {
   gap: var(--s-12);
   padding: clamp(28px, 4.5vw, 56px);
   background: var(--roxo-escuro);
-  color: #ffffff;
+  color: var(--branco);
   position: relative;
   overflow: hidden;
 }
@@ -1618,7 +1645,7 @@ code {
   width: 280px;
   height: 280px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.4), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--roxo-400) 40%, transparent), transparent 70%);
   pointer-events: none;
 }
 
@@ -1639,7 +1666,7 @@ code {
   font-weight: 650;
   letter-spacing: -0.022em;
   line-height: 1.1;
-  color: #ffffff;
+  color: var(--branco);
 }
 
 .acesso__frase em {
@@ -1656,7 +1683,7 @@ code {
   margin: var(--s-5) 0 0;
   font-size: var(--t-11);
   line-height: 1.9;
-  color: rgba(255, 255, 255, 0.62);
+  color: color-mix(in srgb, var(--branco) 62%, transparent);
 }
 
 .acesso__painel {
@@ -1790,7 +1817,7 @@ code {
 .perfil-opcao--ativo .perfil-opcao__marca {
   background: var(--roxo-600);
   border-color: var(--roxo-600);
-  color: #ffffff;
+  color: var(--branco);
 }
 
 .perfil-opcao__texto {
@@ -1977,7 +2004,7 @@ code {
 
 .segmentado__opcao input:checked + span {
   background: var(--roxo-600);
-  color: #ffffff;
+  color: var(--branco);
 }
 
 .segmentado__opcao--alta .ponto {
@@ -2034,7 +2061,7 @@ code {
   width: 100%;
   height: 100%;
   border: 0;
-  background: rgba(30, 18, 51, 0.5);
+  background: color-mix(in srgb, var(--roxo-escuro) 50%, transparent);
   cursor: default;
   animation: aparecer 0.16s ease;
 }
@@ -2046,7 +2073,7 @@ code {
   background: var(--superficie);
   border: 1px solid var(--linha);
   border-radius: var(--radius-hero);
-  box-shadow: 0 22px 54px rgba(30, 18, 51, 0.18);
+  box-shadow: 0 22px 54px color-mix(in srgb, var(--roxo-escuro) 18%, transparent);
   animation: subir 0.18s ease;
 }
 
@@ -2116,11 +2143,11 @@ code {
   gap: 8px;
   padding: 10px 16px;
   background: var(--roxo-escuro);
-  color: #ffffff;
+  color: var(--branco);
   font-size: var(--t-13);
   font-weight: 700;
   border-radius: var(--radius);
-  box-shadow: 0 10px 26px rgba(30, 18, 51, 0.2);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--roxo-escuro) 20%, transparent);
   animation: toast-in 0.18s ease;
 }
 
@@ -2153,16 +2180,15 @@ code {
   text-align: center;
 }
 
-.estado-vazio__marca {
-  position: relative;
-  width: 72px;
-  height: 72px;
+.estado-vazio__marca.marca-marca--grande {
+  width: 80px;
+  height: 80px;
   margin-bottom: var(--s-5);
-  border-radius: 20px;
-  background: var(--roxo-100);
-  display: grid;
-  place-items: center;
-  color: var(--roxo-600);
+}
+
+.estado-vazio__marca.marca-marca--grande .marca-marca__imagem {
+  width: 100%;
+  height: 100%;
 }
 
 .estado-vazio h2 {
