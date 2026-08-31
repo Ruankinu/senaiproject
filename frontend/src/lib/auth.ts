@@ -1,4 +1,4 @@
-import { api, limparToken, obterToken, salvarToken } from './api';
+import { api, ApiError, limparToken, obterToken, salvarToken } from './api';
 import type { Perfil, Usuario } from '../types';
 
 interface RespostaAuth {
@@ -32,15 +32,29 @@ export async function registrar(dados: {
   return comPerfilCompleto(resposta);
 }
 
+/**
+ * Restaura a sessão no boot.
+ *
+ * Regra de verdade (nunca tratar "ainda não verificado" como
+ * "não autenticado"):
+ *  - sem token → null (usuário vai para o login, sem chamada de rede);
+ *  - /me 401  → token real é inválido/expirado: limpa e retorna null;
+ *  - /me 200  → usuário autenticado;
+ *  - falha de rede/5xx → LANÇA. Quem chama (AuthProvider) faz retry com
+ *    backoff e mantém o estado "carregando" — a sessão válida não é
+ *    descartada por um pico de instabilidade.
+ */
 export async function obterSessao(): Promise<Usuario | null> {
   if (!obterToken()) return null;
   try {
     const resposta = await api.get<{ usuario: Usuario }>('/me');
     return resposta.usuario;
-  } catch {
-    // 401 já é tratado pelo cliente HTTP (token limpo + evento rithmo:401);
-    // falhas de rede/5xx não devem descartar uma sessão válida.
-    return null;
+  } catch (erro) {
+    if (erro instanceof ApiError && erro.status === 401) {
+      limparToken();
+      return null;
+    }
+    throw erro;
   }
 }
 

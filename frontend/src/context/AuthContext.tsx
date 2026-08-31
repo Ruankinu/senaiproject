@@ -37,19 +37,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let ativo = true;
-    authLib
-      .obterSessao()
-      .then((sessao) => {
-        if (ativo) setUsuario(sessao);
-      })
-      .finally(() => {
-        if (ativo) setCarregando(false);
-      });
+    let timer: number | undefined;
 
-    const aoExpirar = () => setUsuario(null);
+    /**
+     * Boot com retry: sem token → login imediato; /me 401 → login com token
+     * limpo; falha transitória (rede/5xx) → continua em "carregando" e tenta
+     * de novo, em vez de tratar "ainda não verificado" como "não autenticado"
+     * e expulsar um usuário com sessão válida para o login.
+     */
+    async function tentarRestaurar(tentativa: number) {
+      try {
+        const sessao = await authLib.obterSessao();
+        if (!ativo) return;
+        setUsuario(sessao);
+        setCarregando(false);
+      } catch {
+        if (!ativo) return;
+        const atraso =
+          tentativa < 3 ? tentativa * 1200 + 1200 : 8000;
+        timer = window.setTimeout(() => {
+          void tentarRestaurar(tentativa + 1);
+        }, atraso);
+      }
+    }
+
+    void tentarRestaurar(1);
+
+    const aoExpirar = () => {
+      setUsuario(null);
+      setCarregando(false);
+    };
     window.addEventListener('rithmo:401', aoExpirar);
     return () => {
       ativo = false;
+      if (timer !== undefined) window.clearTimeout(timer);
       window.removeEventListener('rithmo:401', aoExpirar);
     };
   }, []);
