@@ -3,6 +3,7 @@ node_modules/
 
 # Builds
 frontend/dist/
+*.tsbuildinfo
 
 # Bancos locais de preview
 *.sqlite3
