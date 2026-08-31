@@ -1,34 +1,43 @@
 import { Link } from 'react-router-dom';
-import { Botao } from './Botao';
 import { Icone } from './Icone';
+import type { Usuario } from '../types';
 
 interface CabecalhoProps {
-  onNovaTarefa?: () => void;
+  usuario: Usuario;
+  streak?: number;
+  onSair: () => void;
 }
 
 /**
- * Navegação mínima: marca à esquerda, ação principal à direita.
- * Sem sidebar — esta aplicação não precisa dela.
+ * Navegação mínima: marca à esquerda, contexto e saída à direita.
+ * Sem sidebar — cada perfil tem uma tela principal.
  */
-export function Cabecalho({ onNovaTarefa }: CabecalhoProps) {
+export function Cabecalho({ usuario, streak = 0, onSair }: CabecalhoProps) {
   return (
     <header className="cabecalho">
-      <Link to="/" className="marca" aria-label="RITHMO — página inicial">
+      <Link to={usuario.perfil === 'psicologo' ? '/psicologo' : '/'} className="marca" aria-label="RITHMO">
         <span className="marca__pulso" aria-hidden="true" />
         <span className="marca__nome">RITHMO</span>
       </Link>
 
-      {onNovaTarefa ? (
-        <Botao onClick={onNovaTarefa}>
-          <Icone nome="plus" tamanho={14} />
-          Nova tarefa
-        </Botao>
-      ) : (
-        <Link to="/" className="btn btn--fantasma">
-          <Icone nome="arrow-left" tamanho={14} />
-          Tarefas
-        </Link>
-      )}
+      <div className="cabecalho__direita">
+        <span className="cabecalho__usuario">{usuario.nome.split(' ')[0]}</span>
+        {usuario.perfil === 'paciente' && streak > 0 && (
+          <span className="chip-streak" title="Dias seguidos">
+            <span className="ponto ponto--streak" aria-hidden="true" />
+            {streak}
+          </span>
+        )}
+        <button
+          type="button"
+          className="btn btn--icone"
+          aria-label="Sair da conta"
+          title="Sair"
+          onClick={onSair}
+        >
+          <Icone nome="logout" tamanho={15} />
+        </button>
+      </div>
     </header>
   );
 }

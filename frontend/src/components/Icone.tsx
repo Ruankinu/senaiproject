@@ -5,8 +5,8 @@ interface IconeProps {
 }
 
 /**
- * Conjunto único e coerente de ícones (traço 1.6, geométricos).
- * Usados somente quando melhoram a compreensão ou economizam espaço.
+ * Conjunto único de ícones (traço 1.6, geométricos) — usados somente
+ * quando melhoram a compreensão ou economizam espaço.
  */
 export function Icone({ nome, tamanho = 16, className }: IconeProps) {
   const caminhos: Record<string, JSX.Element> = {
@@ -19,11 +19,38 @@ export function Icone({ nome, tamanho = 16, className }: IconeProps) {
       </>
     ),
     'arrow-left': <path d="M8.5 2.5L3 8l5.5 5.5M3 8h10" />,
+    'chevron-right': <path d="M6 3.5L10.5 8L6 12.5" />,
     x: <path d="M4 4l8 8M12 4l-8 8" />,
     refresh: (
       <>
         <path d="M13 8a5 5 0 11-1.4-4.1" />
         <path d="M13 2.8v3.4H9.6" />
+      </>
+    ),
+    logout: (
+      <>
+        <path d="M6.5 2.5H4a1.5 1.5 0 00-1.5 1.5v8A1.5 1.5 0 004 13.5h2.5" />
+        <path d="M10.5 5L14 8l-3.5 3M14 8H6" />
+      </>
+    ),
+    copy: (
+      <>
+        <rect x="5.5" y="5.5" width="8" height="8" rx="1" />
+        <path d="M10.5 5.5V4a1 1 0 00-1-1H4a1 1 0 00-1 1v5.5a1 1 0 001 1h1.5" />
+      </>
+    ),
+    users: (
+      <>
+        <circle cx="5.5" cy="5" r="2" />
+        <path d="M2 13a3.5 3.5 0 017 0" />
+        <circle cx="11" cy="5" r="2" />
+        <path d="M11 8.5a3.5 3.5 0 013.5 3.5" />
+      </>
+    ),
+    user: (
+      <>
+        <circle cx="8" cy="5" r="2.5" />
+        <path d="M3.2 13.5a4.8 4.8 0 019.6 0" />
       </>
     ),
     dot: <circle cx="8" cy="8" r="2.6" fill="currentColor" stroke="none" />,

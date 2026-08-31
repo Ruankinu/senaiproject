@@ -1,12 +1,18 @@
 /**
  * Cliente HTTP da API RITHMO.
- * Em desenvolvimento as requisições usam o prefixo relativo "/api",
- * que o Vite encaminha (proxy) para o backend em localhost:3000.
- * Em produção, defina VITE_API_BASE com a URL pública da API.
+ * Todas as chamadas usam o prefixo relativo "/api" (proxy do Vite em dev).
+ * O token de sessão é anexado automaticamente; ao receber 401 a sessão é
+ * encerrada e a aplicação redireciona para o login.
  */
 
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api';
 const TIMEOUT_MS = 10_000;
+const TOKEN_KEY = 'rithmo_token';
+
+export const obterToken = (): string | null => localStorage.getItem(TOKEN_KEY);
+export const salvarToken = (token: string): void =>
+  localStorage.setItem(TOKEN_KEY, token);
+export const limparToken = (): void => localStorage.removeItem(TOKEN_KEY);
 
 export class ApiError extends Error {
   readonly status: number;
@@ -26,6 +32,7 @@ interface ResultadoJson {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const controlador = new AbortController();
   const timeout = window.setTimeout(() => controlador.abort(), TIMEOUT_MS);
+  const token = obterToken();
 
   try {
     const resposta = await fetch(`${API_BASE}${path}`, {
@@ -33,6 +40,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       signal: controlador.signal,
       headers: {
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
       },
     });
@@ -45,6 +53,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     }
 
     if (!resposta.ok) {
+      if (resposta.status === 401 && !path.startsWith('/auth/')) {
+        limparToken();
+        window.dispatchEvent(new Event('rithmo:401'));
+      }
       throw new ApiError(
         resposta.status,
         typeof corpo?.mensagem === 'string' ? corpo.mensagem : '',
@@ -59,7 +71,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       throw new ApiError(0, 'A requisição excedeu o tempo limite.');
     }
 
-    // Falha de rede, DNS, CORS ou servidor fora do ar.
     console.error('[api] Falha de rede:', erro);
     throw new ApiError(0, 'Não foi possível conectar ao servidor.');
   } finally {

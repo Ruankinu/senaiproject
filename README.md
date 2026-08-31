@@ -1,82 +1,118 @@
 # RITHMO
 
-Gerenciador de tarefas com foco em **ordem, ritmo e clareza**.
-Backend em Node.js + Express + MySQL e frontend em React + Vite + TypeScript.
+Plataforma de **rotina diária** que conecta **pacientes e psicólogos**:
+o paciente organiza e executa sua rotina; o psicólogo acompanha a consistência
+do paciente. O design é editorial e funcional: tipografia, espaço e hierarquia —
+sem dashboards genéricos nem efeitos decorativos.
+
+## Visão de produto
+
+```
+Paciente ↔ Rotina ↔ Psicólogo
+```
+
+1. **Rotina** — atividades com data, horário, prioridade e complexidade.
+2. **Acompanhamento** — vínculo real paciente ↔ psicólogo (por código).
+3. **Gamificação** — streak e conquistas calculadas dos dados reais.
+4. **Inteligência (futuro)** — a arquitetura já separa serviços para receber
+   interpretação de rotina; a camada de IA **não diagnostica** nem substitui
+   o psicólogo.
 
 ## Estrutura
 
 ```
-.
-├── server.js                  # API Express (porta 3000)
-├── controllers/               # Lógica das rotas de tarefas
-├── routes/                    # Definição das rotas
-├── models/                    # Entidade Tarefa
+├── server.js                  # Express — monta /api/auth, /api e rotas legadas
+├── middleware/auth.js         # JWT + restrição por perfil
+├── services/                  # Regras de negócio (auth, rotina, gamificação, vínculo)
+├── controllers/               # Entrada HTTP (MVP + legado de tarefas)
+├── routes/                    # AuthRoutes (públicas), ApiRoutes (autenticadas)
+├── models/                    # Entidade legada Tarefa
 ├── db/
-│   ├── database.js            # Conexão MySQL
-│   └── schema.sql             # Criação do banco e da tabela
-├── frontend/                  # Interface RITHMO (React + Vite + TS)
-│   └── src/
-│       ├── components/        # UI (linha de tarefa, diálogos, toasts…)
-│       ├── pages/             # Home e Edição
-│       ├── hooks/             # Estado das tarefas (busca + mutações)
-│       ├── lib/               # Cliente da API, datas, erros
-│       ├── types/             # Tipos do domínio
-│       └── styles/            # Sistema visual (elementos, não utilitários)
-└── package.json               # Backend
+│   ├── database.js            # Pool MySQL (env: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
+│   ├── schema.sql             # usuarios, psicologos, vinculos, atividades
+│   └── seed.js                # Contas e rotinas de demonstração
+├── utils/                     # ApiError, wrapper de handlers
+└── frontend/                  # React + Vite + TypeScript
 ```
 
-## Rodando o projeto
-
-### 1. Banco de dados (MySQL)
+## Executando
 
 ```bash
+# 1. Banco
 mysql -u root < db/schema.sql
-```
 
-### 2. Backend (porta 3000)
-
-```bash
+# 2. Backend (porta 3000)
 npm install
-npm run dev        # ou npm start
+npm run dev            # ou: npm start
+
+# 3. Seed de demonstração (opcional)
+npm run db:seed
+
+# 4. Frontend (porta 5173)
+cd frontend && npm install && npm run dev
 ```
 
-### 3. Frontend (porta 5173)
+Variáveis de ambiente do backend: `PORT`, `JWT_SECRET`, `DB_HOST`,
+`DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
 
-```bash
-cd frontend
-npm install
-npm run dev
+## Conta de demonstração
+
+| Perfil     | E-mail                    | Senha   | Código de vínculo |
+| ---------- | ------------------------- | ------- | ----------------- |
+| Paciente   | ana@rithmo.app           | 123456  | —                 |
+| Paciente   | lucas@rithmo.app         | 123456  | —                 |
+| Psicóloga  | psicologa@rithmo.app     | 123456  | RITMO1            |
+
+## API (MVP)
+
+Públicas:
+
+```
+POST /api/auth/registro   { nome, email, senha, perfil: 'paciente'|'psicologo' }
+POST /api/auth/login      { email, senha } → { token, usuario }
 ```
 
-Em desenvolvimento, o Vite encaminha `/api` para `http://127.0.0.1:3000`.
-Em produção, defina `VITE_API_BASE` com a URL pública da API antes do build.
+Autenticadas (Bearer token, `/api`):
 
-## API
+```
+GET    /me                                        → perfil + código/vínculo
+GET    /atividades                                → lista (filtros: status, data)
+POST   /atividades                                → cria
+GET    /atividades/:id                            → busca
+PUT    /atividades/:id                            → atualização parcial
+DELETE /atividades/:id                            → exclui
+PATCH  /atividades/:id/concluir                   → conclui/reabre
+GET    /rotina/hoje?data=YYYY-MM-DD               → atividades do dia + progresso
+GET    /progresso                                 → streak, melhor streak, badges
+GET    /vinculo                                   → código (psi) ou psicólogo (paciente)
+POST   /vinculo        { codigo }                 → paciente se vincula
+GET    /pacientes                                 → pacientes + resumo (psi)
+GET    /pacientes/:id/resumo                      → hoje, atrasadas, 7 dias (psi)
+GET    /pacientes/:id/rotina?data=YYYY-MM-DD      → rotina do paciente (psi)
+```
 
-| Método | Rota                   | Descrição                          |
-| ------ | ---------------------- | ---------------------------------- |
-| POST   | `/cadastrarTarefa`     | Cria uma tarefa                    |
-| GET    | `/`                    | Lista (ordenada por prazo)         |
-| GET    | `/:id`                 | Busca uma tarefa                   |
-| PUT    | `/:id`                 | Atualização parcial                |
-| DELETE | `/:id`                 | Exclui                             |
-| PATCH  | `/:id/concluir`        | Marca como concluída               |
+Validações: campos obrigatórios e enums (prioridade, complexidade, perfil)
+são rejeitados com `400`; recurso inexistente → `404`; sem sessão → `401`;
+perfil errado → `403`. Mensagens sempre previsíveis em `{ mensagem }`.
 
-## Preview sem MySQL instalado
+Contratos legados de tarefas (`/cadastrarTarefa`, `GET /:id`, etc.) continuam
+montados em `/` para compatibilidade, mas não são usados pelo produto.
 
-Ambientes sem MySQL (como este sandbox) podem usar um servidor de preview que
-fala o protocolo MySQL por cima de SQLite (`mysql-mimic`), apontando a
-conexão do backend para ele. Esse servidor **não faz parte do produto** — é
-apenas da demonstração e vive fora do repositório (em `preview-db/`,
-ignorado pelo git). Em desenvolvimento normal, use MySQL de verdade com
-`db/schema.sql`.
+## Gamificação (regra clara)
 
-## Decisões de produto
+- Um dia conta para a **sequência** quando o paciente concluiu pelo menos uma
+  atividade planejada naquele dia (prazo = dia).
+- Conquistas: Primeiro passo (1 dia), 7 dias, 1 mês, 6 meses, 1 ano — baseadas
+  na melhor sequência histórica, com progresso visível.
+- Linguagem motivadora: nunca de punição.
 
-- **Sem sidebar**: a aplicação tem uma tela principal; navegação é só a marca + ação primária.
-- **Lista em linhas, não cards**: densidade legível com título em primeiro plano e metadados em colunas.
-- **Prazo contextual**: Atrasada / Hoje / Amanhã / Em breve, derivados apenas dos dados.
-- **Concluir por checkbox**: ação principal com retorno visual imediato (atualização otimista).
-- **Edição reutiliza o formulário do cadastro** e permite alterar o status.
-- **Exclusão sempre com confirmação** que nomeia a tarefa.
-- Uma única cor de destaque (vermelho-petróleo); prioridades usam cores funcionais discretas.
+## Frontend
+
+Páginas: login, cadastro com escolha de perfil, **Home do paciente** ("O que
+preciso fazer hoje?" — progresso, atividades por horário, consistência,
+vínculo) e **Home do psicólogo** (código de vínculo, pacientes, rotina
+individual com últimos 7 dias).
+
+Acessibilidade: labels reais, foco visível, teclado, contraste AA,
+`aria-*`, áreas clicáveis adequadas. Responsivo: mobile, tablet e desktop.
+Estados de loading (skeleton), vazio e erro em todas as telas.
