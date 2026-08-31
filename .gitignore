@@ -12,3 +12,4 @@ preview-db/
 # Ambiente
 .env
 .env.local
+.venv-db/

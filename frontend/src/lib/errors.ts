@@ -12,8 +12,16 @@ export function mensagemErro(erro: unknown, contexto: string): string {
       return message || 'Alguns dados estão inválidos. Verifique os campos.';
     }
 
+    if (status === 401) {
+      return 'Sua sessão expirou. Entre novamente.';
+    }
+
+    if (status === 403) {
+      return 'Você não tem acesso a esta área.';
+    }
+
     if (status === 404) {
-      return 'Tarefa não encontrada. Ela pode ter sido excluída.';
+      return 'Não encontramos o que você procurava.';
     }
 
     if (status === 500) {
