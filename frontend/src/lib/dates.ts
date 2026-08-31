@@ -45,6 +45,33 @@ export function dataOntemISO(): string {
   return `${ontem.getFullYear()}-${mes}-${dia}`;
 }
 
+export function somarDiasISO(iso: string, dias: number): string {
+  const data = parseData(iso);
+  if (!data) return iso;
+  const nova = new Date(data.getTime() + dias * 86_400_000);
+  const mes = String(nova.getMonth() + 1).padStart(2, '0');
+  const dia = String(nova.getDate()).padStart(2, '0');
+  return `${nova.getFullYear()}-${mes}-${dia}`;
+}
+
+/** "segunda-feira, 25 de agosto" */
+export function formatarDiaExtenso(iso: string): string {
+  const data = parseData(iso);
+  if (!data) return iso;
+  return data.toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+}
+
+export function rotuloRelativo(iso: string): string {
+  const hoje = hojeISO();
+  if (iso === hoje) return 'Hoje';
+  if (iso === somarDiasISO(hoje, -1)) return 'Ontem';
+  return '';
+}
+
 export function pluralizar(
   quantidade: number,
   singular: string,

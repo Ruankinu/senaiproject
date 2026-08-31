@@ -4,12 +4,12 @@ import { Cabecalho } from '../components/Cabecalho';
 import { LinhaAtividade } from '../components/LinhaAtividade';
 import { ModalAtividade } from '../components/ModalAtividade';
 import { ConfirmarExclusao } from '../components/ConfirmarExclusao';
-import { BarraProgresso } from '../components/BarraProgresso';
-import { SecaoStreak } from '../components/SecaoStreak';
+import { SecaoConsistencia } from '../components/SecaoConsistencia';
 import { SecaoVinculo } from '../components/SecaoVinculo';
 import { EstadoVazio } from '../components/EstadoVazio';
 import { Esqueleto } from '../components/Esqueleto';
 import { Botao } from '../components/Botao';
+import { Barra } from '../components/Barra';
 import { Icone } from '../components/Icone';
 import { useToast } from '../components/Toast';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +19,7 @@ import {
   useVinculoPaciente,
 } from '../hooks/dados';
 import * as rithmo from '../lib/rithmo';
-import { formatarDataLonga, hojeISO, pluralizar } from '../lib/dates';
+import { formatarDiaExtenso, hojeISO, pluralizar } from '../lib/dates';
 import { mensagemErro } from '../lib/errors';
 import type { Atividade } from '../types';
 
@@ -79,6 +79,10 @@ export function PaginaInicio() {
     navigate('/login', { replace: true });
   };
 
+  const dados = rotina.dados;
+  const hoje = hojeISO();
+  const temAtividades = Boolean(dados && dados.total > 0);
+
   return (
     <div className="container">
       <Cabecalho
@@ -88,32 +92,33 @@ export function PaginaInicio() {
       />
 
       <main className="pagina">
-        <div className="pagina__linha">
+        <header className="pagina__cabecalho">
           <div>
-            <h1 className="titulo-pagina">Hoje</h1>
-            <p className="resumo">
-              {formatarDataLonga(hojeISO())}
-              {rotina.dados && rotina.dados.total > 0 && (
-                <>
-                  {' · '}
-                  {rotina.dados.concluidas} de {rotina.dados.total}{' '}
-                  {pluralizar(rotina.dados.total, 'atividade', 'atividades')}{' '}
-                  concluídas
-                </>
-              )}
+            <p className="rotulo-data">Hoje · {hoje}</p>
+            <h1 className="titulo-pagina">{formatarDiaExtenso(hoje)}</h1>
+            <p className="subtitulo">
+              {dados && temAtividades
+                ? `${dados.concluidas} de ${dados.total} ${pluralizar(
+                    dados.total,
+                    'atividade',
+                    'atividades',
+                  )} concluídas`
+                : 'O que você precisa fazer agora?'}
             </p>
           </div>
           <Botao onClick={() => setModalAberta(true)}>
             <Icone nome="plus" tamanho={14} />
             Nova atividade
           </Botao>
-        </div>
+        </header>
 
-        {rotina.dados && rotina.dados.total > 0 && (
-          <div className="pagina__progresso">
-            <BarraProgresso
-              valor={rotina.dados.progresso}
-              rotulo={`Progresso de hoje: ${rotina.dados.progresso}%`}
+        {dados && temAtividades && (
+          <div className="progresso-linha">
+            <span className="progresso-linha__texto">{dados.progresso}%</span>
+            <Barra
+              valor={dados.progresso}
+              rotulo="Progresso de hoje"
+              className="progresso-linha__trilho"
             />
           </div>
         )}
@@ -130,36 +135,30 @@ export function PaginaInicio() {
           </section>
         )}
 
-        {!rotina.carregando &&
-          !rotina.erro &&
-          rotina.dados &&
-          rotina.dados.total === 0 && (
-            <EstadoVazio
-              titulo="Nada planejado para hoje."
-              texto="Adicione sua primeira atividade com horário e prioridade — um dia de cada vez."
-              acao={{ rotulo: 'Nova atividade', onClick: () => setModalAberta(true) }}
-            />
-          )}
+        {!rotina.carregando && !rotina.erro && dados && !temAtividades && (
+          <EstadoVazio
+            titulo="Nada planejado para hoje."
+            texto="Adicione sua primeira atividade com horário e prioridade — um dia de cada vez."
+            acao={{ rotulo: 'Nova atividade', onClick: () => setModalAberta(true) }}
+          />
+        )}
 
-        {!rotina.carregando &&
-          !rotina.erro &&
-          rotina.dados &&
-          rotina.dados.total > 0 && (
-            <section className="atividades" aria-label="Atividades de hoje">
-              {rotina.dados.atividades.map((atividade) => (
-                <LinhaAtividade
-                  key={atividade.id}
-                  atividade={atividade}
-                  onAlternar={aoAlternar}
-                  onEditar={(item) => setEditando(item)}
-                  onExcluir={setParaExcluir}
-                />
-              ))}
-            </section>
-          )}
+        {!rotina.carregando && !rotina.erro && dados && temAtividades && (
+          <section className="rotina" aria-label="Rotina de hoje">
+            {dados.atividades.map((atividade) => (
+              <LinhaAtividade
+                key={atividade.id}
+                atividade={atividade}
+                onAlternar={aoAlternar}
+                onEditar={(item) => setEditando(item)}
+                onExcluir={setParaExcluir}
+              />
+            ))}
+          </section>
+        )}
 
         {progresso.dados && (
-          <SecaoStreak progresso={progresso.dados} />
+          <SecaoConsistencia progresso={progresso.dados} />
         )}
 
         <SecaoVinculo

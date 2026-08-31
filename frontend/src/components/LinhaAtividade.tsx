@@ -1,3 +1,4 @@
+import { Icone } from './Icone';
 import type { Atividade } from '../types';
 import { ehConcluida } from '../types';
 
@@ -31,8 +32,8 @@ function PontosComplexidade({ nivel }: { nivel: string }) {
 }
 
 /**
- * Item de rotina em formato de linha com eixo temporal (horário à esquerda).
- * Ações discretas no hover (sempre visíveis em telas de toque).
+ * Item da rotina em timeline: o horário é a coluna estruturante, a linha
+ * carrega título/descrição/metadados e a conclusão é a ação principal.
  */
 export function LinhaAtividade({
   atividade,
@@ -51,8 +52,15 @@ export function LinhaAtividade({
     <article
       className={`atividade${concluida ? ' atividade--concluida' : ''}`}
     >
-      {!somenteLeitura && (
-        <div className="atividade__check">
+      <div className="atividade__check">
+        {somenteLeitura ? (
+          <span
+            className={`atividade__status-dot${
+              concluida ? ' atividade__status-dot--concluida' : ''
+            }`}
+            aria-label={concluida ? 'Concluída' : 'Pendente'}
+          />
+        ) : (
           <input
             type="checkbox"
             className="atividade__checkbox"
@@ -64,40 +72,29 @@ export function LinhaAtividade({
             }
             onChange={() => onAlternar?.(atividade)}
           />
-        </div>
-      )}
-
-      <div className="atividade__horario" aria-label={`às ${atividade.horario ?? 'sem horário definido'}`}>
-        {atividade.horario ?? '—'}
+        )}
       </div>
+
+      <div className="atividade__tempo">{atividade.horario ?? '—'}</div>
 
       <div className="atividade__corpo">
         <h3 className="atividade__titulo">{atividade.titulo}</h3>
         {atividade.descricao && (
           <p className="atividade__descricao">{atividade.descricao}</p>
         )}
-      </div>
-
-      <div className="atividade__meta">
-        <span
-          className={`prioridade prioridade--${prioridadeSlug}`}
-          title={`Prioridade ${atividade.prioridade}`}
-        >
-          <i className="ponto" aria-hidden="true" />
-          {atividade.prioridade}
-        </span>
-        <PontosComplexidade nivel={atividade.complexidade} />
-      </div>
-
-      {somenteLeitura ? (
-        <div className="atividade__status">
-          {concluida ? (
-            <span className="atividade__concluida">Concluída</span>
-          ) : (
-            <span className="atividade__pendente">Pendente</span>
-          )}
+        <div className="atividade__meta">
+          <span
+            className={`prioridade prioridade--${prioridadeSlug}`}
+            title={`Prioridade ${atividade.prioridade}`}
+          >
+            <i className="ponto" aria-hidden="true" />
+            {atividade.prioridade}
+          </span>
+          <PontosComplexidade nivel={atividade.complexidade} />
         </div>
-      ) : (
+      </div>
+
+      {!somenteLeitura && (
         <div className="atividade__acoes">
           <button
             type="button"
@@ -106,7 +103,7 @@ export function LinhaAtividade({
             title="Editar"
             onClick={() => onEditar?.(atividade)}
           >
-            <IconeEditar />
+            <Icone nome="pencil" tamanho={15} />
           </button>
           <button
             type="button"
@@ -115,20 +112,10 @@ export function LinhaAtividade({
             title="Excluir"
             onClick={() => onExcluir?.(atividade)}
           >
-            <IconeLixeira />
+            <Icone nome="trash" tamanho={15} />
           </button>
         </div>
       )}
     </article>
   );
-}
-
-import { Icone } from './Icone';
-
-function IconeEditar() {
-  return <Icone nome="pencil" tamanho={15} />;
-}
-
-function IconeLixeira() {
-  return <Icone nome="trash" tamanho={15} />;
 }

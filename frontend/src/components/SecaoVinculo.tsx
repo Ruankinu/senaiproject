@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
 import { Botao } from './Botao';
-import { Icone } from './Icone';
 import { mensagemErro } from '../lib/errors';
 import type { Usuario } from '../types';
 
@@ -42,43 +41,45 @@ export function SecaoVinculo({
   return (
     <section className="secao" aria-label="Seu psicólogo">
       <header className="secao__cabecalho">
-        <h2 className="secao__titulo">Seu psicólogo</h2>
-        {psicologo && (
-          <p className="secao__meta">Vínculo ativo · {psicologo.nome}</p>
-        )}
+        <div>
+          <h2 className="secao__titulo">Seu psicólogo</h2>
+          <p className="secao__legenda">
+            Compartilha sua rotina com quem acompanha você.
+          </p>
+        </div>
       </header>
 
       {carregando ? (
-        <p className="secao__meta">Carregando…</p>
+        <p className="secao__legenda">Carregando…</p>
       ) : psicologo ? (
-        <p className="vinculo-ativo">
-          <Icone nome="user" tamanho={15} />
-          <span>
-            <strong>{psicologo.nome}</strong>
-            <span className="vinculo-ativo__email">{psicologo.email}</span>
-          </span>
-        </p>
+        <div className="vinculo">
+          <div>
+            <span className="vinculo__rotulo">Vínculo ativo</span>
+            <p className="vinculo__pessoa">{psicologo.nome}</p>
+            <p className="vinculo__meta">{psicologo.email}</p>
+          </div>
+        </div>
       ) : (
-        <form className="vinculo-form" onSubmit={aoEnviar}>
-          <div className="campo">
+        <form className="formulario vinculo-form" onSubmit={aoEnviar}>
+          <div className="campo campo--regua">
             <label htmlFor="campo-codigo">Código do psicólogo</label>
-            <div className="vinculo-form__linha">
-              <input
-                id="campo-codigo"
-                type="text"
-                value={codigo}
-                maxLength={8}
-                placeholder="Ex.: RITMO1"
-                autoComplete="off"
-                onChange={(e) => setCodigo(e.target.value.toUpperCase())}
-              />
-              <Botao type="submit" carregando={enviando}>
-                Vincular
-              </Botao>
-            </div>
+            <input
+              id="campo-codigo"
+              type="text"
+              value={codigo}
+              maxLength={8}
+              placeholder="Ex.: RITMO1"
+              autoComplete="off"
+              onChange={(e) => setCodigo(e.target.value.toUpperCase())}
+            />
             <p className="campo-ajuda">
-              Peça o código ao seu psicólogo. Ele aparece na conta dele.
+              Peça o código ao seu psicólogo — ele aparece na conta dele.
             </p>
+          </div>
+          <div>
+            <Botao type="submit" carregando={enviando}>
+              Vincular
+            </Botao>
           </div>
         </form>
       )}

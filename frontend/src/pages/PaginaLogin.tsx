@@ -11,11 +11,17 @@ export function PaginaLogin() {
   const [senha, setSenha] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [erros, setErros] = useState<{ email?: string; senha?: string }>({});
 
   const aoEnviar = async (evento: FormEvent) => {
     evento.preventDefault();
-    if (!email.trim() || !senha) {
-      setErro('Informe e-mail e senha.');
+
+    const novos: { email?: string; senha?: string } = {};
+    if (!email.trim()) novos.email = 'Informe seu e-mail.';
+    if (!senha) novos.senha = 'Informe sua senha.';
+    if (Object.keys(novos).length > 0) {
+      setErros(novos);
+      setErro(null);
       return;
     }
 
@@ -35,58 +41,82 @@ export function PaginaLogin() {
 
   return (
     <main className="auth">
-      <div className="auth__cartao">
-        <Link to="/" className="marca marca--central" aria-label="RITHMO">
+      <aside className="auth__marca">
+        <Link to="/" className="marca" aria-label="RITHMO">
           <span className="marca__pulso" aria-hidden="true" />
           <span className="marca__nome">RITHMO</span>
         </Link>
-        <p className="auth__tagline">Seu ritmo. Um dia de cada vez.</p>
 
-        <form className="formulario" onSubmit={aoEnviar} noValidate>
-          <div className="campo">
-            <label htmlFor="campo-email">E-mail</label>
-            <input
-              id="campo-email"
-              type="email"
-              value={email}
-              autoComplete="email"
-              placeholder="voce@exemplo.com"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+        <div className="auth__frase">
+          <span>Seu ritmo.</span>
+          <span>Um dia de <em>cada vez</em>.</span>
+        </div>
 
-          <div className="campo">
-            <label htmlFor="campo-senha">Senha</label>
-            <input
-              id="campo-senha"
-              type="password"
-              value={senha}
-              autoComplete="current-password"
-              placeholder="••••••"
-              onChange={(e) => setSenha(e.target.value)}
-            />
-          </div>
+        <div>
+          <p className="auth__nota">
+            Rotina, consistência e acompanhamento — entre você e seu
+            psicólogo, no mesmo lugar.
+          </p>
+          <p className="auth__demo">
+            Ambiente de demonstração: paciente <code>ana@rithmo.app</code> ·
+            psicóloga <code>psicologa@rithmo.app</code> (senha{' '}
+            <code>123456</code>)
+          </p>
+        </div>
+      </aside>
 
-          {erro && (
-            <p className="formulario__erro" role="alert">
-              {erro}
-            </p>
-          )}
+      <section className="auth__painel">
+        <div className="auth__painel-interno">
+          <h1 className="auth__titulo">Entrar</h1>
+          <p className="auth__subtitulo">
+            Continue de onde parou — sua rotina espera.
+          </p>
 
-          <Botao type="submit" carregando={enviando} className="botao-largo">
-            Entrar
-          </Botao>
-        </form>
+          <form className="formulario" onSubmit={aoEnviar} noValidate>
+            <div className="campo campo--regua">
+              <label htmlFor="campo-email">E-mail</label>
+              <input
+                id="campo-email"
+                type="email"
+                value={email}
+                autoComplete="email"
+                placeholder="voce@exemplo.com"
+                aria-invalid={Boolean(erros.email)}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {erros.email && <p className="campo-erro">{erros.email}</p>}
+            </div>
 
-        <p className="auth__rodape">
-          Ainda não tem conta? <Link to="/registro">Criar conta</Link>
-        </p>
+            <div className="campo campo--regua">
+              <label htmlFor="campo-senha">Senha</label>
+              <input
+                id="campo-senha"
+                type="password"
+                value={senha}
+                autoComplete="current-password"
+                placeholder="sua senha"
+                aria-invalid={Boolean(erros.senha)}
+                onChange={(e) => setSenha(e.target.value)}
+              />
+              {erros.senha && <p className="campo-erro">{erros.senha}</p>}
+            </div>
 
-        <p className="auth__demo">
-          Ambiente de demonstração — paciente: <code>ana@rithmo.app</code> ·
-          psicóloga: <code>psicologa@rithmo.app</code> (senha <code>123456</code>)
-        </p>
-      </div>
+            {erro && (
+              <p className="formulario__erro" role="alert">
+                {erro}
+              </p>
+            )}
+
+            <Botao type="submit" carregando={enviando} className="botao-largo">
+              Entrar
+            </Botao>
+          </form>
+
+          <p className="auth__rodape">
+            Ainda não tem conta? <Link to="/registro">Criar conta</Link>
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

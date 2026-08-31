@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Cabecalho } from '../components/Cabecalho';
 import { Botao } from '../components/Botao';
+import { Barra } from '../components/Barra';
 import { Icone } from '../components/Icone';
 import { EstadoVazio } from '../components/EstadoVazio';
 import { Esqueleto } from '../components/Esqueleto';
@@ -42,29 +43,29 @@ export function PaginaPsicologo() {
       <Cabecalho usuario={usuario!} onSair={aoSair} />
 
       <main className="pagina">
-        <div className="pagina__linha">
+        <header className="pagina__cabecalho">
           <div>
+            <p className="rotulo-data">Acompanhamento</p>
             <h1 className="titulo-pagina">Meus pacientes</h1>
-            <p className="resumo">
+            <p className="subtitulo">
               {lista.length}{' '}
               {pluralizar(lista.length, 'paciente vinculado', 'pacientes vinculados')}
             </p>
           </div>
-        </div>
+        </header>
 
-        <section className="secao codigo-secao" aria-label="Código de vínculo">
+        <section aria-label="Código de vínculo">
           <div className="codigo">
             <div>
-              <p className="codigo__rotulo">Código de vínculo</p>
+              <span className="vinculo__rotulo">Código de vínculo</span>
               <p className="codigo__valor">{usuario?.codigo ?? '—'}</p>
-              <p className="campo-ajuda">
-                Compartilhe com seus pacientes — eles entram com este código
-                para criar o vínculo.
+              <p className="codigo__descricao">
+                Compartilhe com seus pacientes — eles entram com este código.
               </p>
             </div>
             <Botao variante="fantasma" onClick={() => void aoCopiar()}>
               <Icone nome="copy" tamanho={14} />
-              {copiado ? 'Copiado' : 'Copiar'}
+              {copiado ? 'Copiado' : 'Copiar código'}
             </Botao>
           </div>
         </section>
@@ -90,13 +91,6 @@ export function PaginaPsicologo() {
 
         {!pacientes.carregando && !pacientes.erro && lista.length > 0 && (
           <section className="pacientes" aria-label="Pacientes vinculados">
-            <div className="pacientes__cabecalho" aria-hidden="true">
-              <span>Paciente</span>
-              <span>Hoje</span>
-              <span>Atrasadas</span>
-              <span>Streak</span>
-              <span />
-            </div>
             {lista.map((paciente) => (
               <PacienteLinha key={paciente.id} paciente={paciente} />
             ))}
@@ -108,25 +102,43 @@ export function PaginaPsicologo() {
 }
 
 function PacienteLinha({ paciente }: { paciente: PacienteResumo }) {
+  const progresso =
+    paciente.hoje.total === 0
+      ? 0
+      : Math.round((paciente.hoje.concluidas / paciente.hoje.total) * 100);
+
   return (
     <article className="paciente">
       <div className="paciente__identidade">
-        <h3 className="paciente__nome">{paciente.nome}</h3>
+        <h2 className="paciente__nome">{paciente.nome}</h2>
         <p className="paciente__email">{paciente.email}</p>
       </div>
-      <div className="paciente__dado">
-        {paciente.hoje.concluidas}/{paciente.hoje.total}
+
+      <div className="paciente__progresso">
+        <span className="paciente__progresso-numero">
+          {paciente.hoje.concluidas}/{paciente.hoje.total}
+        </span>
+        <Barra
+          valor={progresso}
+          rotulo={`Progresso de hoje de ${paciente.nome}`}
+          className="paciente__progresso-trilho"
+        />
       </div>
-      <div className="paciente__dado">
-        {paciente.atrasadas > 0 ? (
-          <span className="atrasadas">{paciente.atrasadas}</span>
-        ) : (
-          '—'
+
+      <div className="paciente__consistencia">
+        {paciente.atrasadas > 0 && (
+          <span className="paciente__atrasadas">
+            {paciente.atrasadas} atrasada{paciente.atrasadas > 1 ? 's' : ''}
+          </span>
         )}
+        {paciente.streak > 0 && (
+          <span>
+            {paciente.streak} {paciente.streak === 1 ? 'dia' : 'dias'}
+          </span>
+        )}
+        {paciente.atrasadas === 0 && paciente.streak === 0 && '—'}
       </div>
-      <div className="paciente__dado">
-        {paciente.streak > 0 ? `${paciente.streak} d` : '—'}
-      </div>
+
       <div className="paciente__acao">
         <Link
           to={`/psicologo/paciente/${paciente.id}`}

@@ -1,28 +1,20 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Botao } from '../components/Botao';
-import { Icone } from '../components/Icone';
 import { useAuth } from '../context/AuthContext';
 import { mensagemErro } from '../lib/errors';
 import type { Perfil } from '../types';
 
-const PERFIS: {
-  id: Perfil;
-  titulo: string;
-  descricao: string;
-  icone: string;
-}[] = [
+const PERFIS: { id: Perfil; titulo: string; descricao: string }[] = [
   {
     id: 'paciente',
-    titulo: 'Paciente',
-    descricao: 'Organize sua rotina.',
-    icone: 'user',
+    titulo: 'Sou paciente',
+    descricao: 'Organizo minha própria rotina, um dia de cada vez.',
   },
   {
     id: 'psicologo',
-    titulo: 'Psicólogo',
-    descricao: 'Acompanhe seus pacientes.',
-    icone: 'users',
+    titulo: 'Sou psicólogo',
+    descricao: 'Acompanho a rotina e a consistência dos meus pacientes.',
   },
 ];
 
@@ -63,89 +55,109 @@ export function PaginaRegistro() {
 
   return (
     <main className="auth">
-      <div className="auth__cartao">
-        <Link to="/" className="marca marca--central" aria-label="RITHMO">
+      <aside className="auth__marca">
+        <Link to="/" className="marca" aria-label="RITHMO">
           <span className="marca__pulso" aria-hidden="true" />
           <span className="marca__nome">RITHMO</span>
         </Link>
-        <p className="auth__tagline">Crie sua conta.</p>
 
-        <div className="campo">
-          <legend className="campo__legenda">Como você usa o RITHMO?</legend>
-          <div className="perfil-cards" role="radiogroup" aria-label="Perfil">
-            {PERFIS.map((opcao) => (
-              <button
-                key={opcao.id}
-                type="button"
-                role="radio"
-                aria-checked={perfil === opcao.id}
-                className={`perfil-card${perfil === opcao.id ? ' perfil-card--ativo' : ''}`}
-                onClick={() => setPerfil(opcao.id)}
-              >
-                <span className="perfil-card__icone">
-                  <Icone nome={opcao.icone} tamanho={18} />
-                </span>
-                <span className="perfil-card__texto">
-                  <strong>{opcao.titulo}</strong>
-                  <small>{opcao.descricao}</small>
-                </span>
-              </button>
-            ))}
-          </div>
+        <div className="auth__frase">
+          <span>Um novo ritmo</span>
+          <span>começa <em>hoje</em>.</span>
         </div>
 
-        <form className="formulario" onSubmit={aoEnviar} noValidate>
-          <div className="campo">
-            <label htmlFor="campo-nome">Nome</label>
-            <input
-              id="campo-nome"
-              type="text"
-              value={nome}
-              autoComplete="name"
-              placeholder="Seu nome"
-              onChange={(e) => setNome(e.target.value)}
-            />
-          </div>
+        <div>
+          <p className="auth__nota">
+            Crie sua conta em menos de um minuto — como paciente ou como
+            psicólogo.
+          </p>
+        </div>
+      </aside>
+
+      <section className="auth__painel">
+        <div className="auth__painel-interno">
+          <h1 className="auth__titulo">Criar conta</h1>
+          <p className="auth__subtitulo">Escolha seu ponto de partida.</p>
 
           <div className="campo">
-            <label htmlFor="campo-email">E-mail</label>
-            <input
-              id="campo-email"
-              type="email"
-              value={email}
-              autoComplete="email"
-              placeholder="voce@exemplo.com"
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <legend className="campo__legenda">
+              Como você usa o RITHMO?
+            </legend>
+            <div className="perfil-cards" role="radiogroup" aria-label="Perfil">
+              {PERFIS.map((opcao) => (
+                <button
+                  key={opcao.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={perfil === opcao.id}
+                  className={`perfil-card${
+                    perfil === opcao.id ? ' perfil-card--ativo' : ''
+                  }`}
+                  onClick={() => setPerfil(opcao.id)}
+                >
+                  <span className="perfil-card__marca" aria-hidden="true" />
+                  <span className="perfil-card__texto">
+                    <strong>{opcao.titulo}</strong>
+                    <small>{opcao.descricao}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="campo">
-            <label htmlFor="campo-senha">Senha</label>
-            <input
-              id="campo-senha"
-              type="password"
-              value={senha}
-              autoComplete="new-password"
-              placeholder="Mínimo de 6 caracteres"
-              onChange={(e) => setSenha(e.target.value)}
-            />
-          </div>
+          <form className="formulario" onSubmit={aoEnviar} noValidate>
+            <div className="campo campo--regua">
+              <label htmlFor="campo-nome">Nome</label>
+              <input
+                id="campo-nome"
+                type="text"
+                value={nome}
+                autoComplete="name"
+                placeholder="Seu nome"
+                onChange={(e) => setNome(e.target.value)}
+              />
+            </div>
 
-          {erro && (
-            <p className="formulario__erro" role="alert">
-              {erro}
-            </p>
-          )}
+            <div className="campo campo--regua">
+              <label htmlFor="campo-email">E-mail</label>
+              <input
+                id="campo-email"
+                type="email"
+                value={email}
+                autoComplete="email"
+                placeholder="voce@exemplo.com"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-          <Botao type="submit" carregando={enviando} className="botao-largo">
-            Criar conta
-          </Botao>
-        </form>
+            <div className="campo campo--regua">
+              <label htmlFor="campo-senha">Senha</label>
+              <input
+                id="campo-senha"
+                type="password"
+                value={senha}
+                autoComplete="new-password"
+                placeholder="mínimo de 6 caracteres"
+                onChange={(e) => setSenha(e.target.value)}
+              />
+            </div>
 
-        <p className="auth__rodape">
-          Já tem conta? <Link to="/login">Entrar</Link>
-        </p>
-      </div>
+            {erro && (
+              <p className="formulario__erro" role="alert">
+                {erro}
+              </p>
+            )}
+
+            <Botao type="submit" carregando={enviando} className="botao-largo">
+              Criar conta
+            </Botao>
+          </form>
+
+          <p className="auth__rodape">
+            Já tem conta? <Link to="/login">Entrar</Link>
+          </p>
+        </div>
+      </section>
     </main>
   );
 }

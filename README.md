@@ -108,10 +108,20 @@ montados em `/` para compatibilidade, mas não são usados pelo produto.
 
 ## Frontend
 
-Páginas: login, cadastro com escolha de perfil, **Home do paciente** ("O que
-preciso fazer hoje?" — progresso, atividades por horário, consistência,
-vínculo) e **Home do psicólogo** (código de vínculo, pacientes, rotina
-individual com últimos 7 dias).
+Identidade editorial (Fraunces + Inter, papel quente, um único acento),
+sem gradientes/efeitos — qualidade vem de tipografia, espaço e hierarquia.
+
+- **Login**: composição em duas colunas — marca + "Seu ritmo. Um dia de cada
+  vez." à esquerda, formulário com inputs de régua à direita.
+- **Cadastro**: escolha de perfil em placas (Sou paciente / Sou psicólogo)
+  antes do formulário.
+- **Home do paciente**: "O que preciso fazer hoje?" — data em destaque,
+  progresso, **rotina em timeline** (horário como coluna estruturante),
+  consistência com badges próprios e vínculo ativo.
+- **Home do psicólogo**: código de vínculo com cópia, pacientes com
+  progresso de hoje e consistência.
+- **Rotina do paciente (psi)**: navegação entre dias (‹ › + Hoje), resumo
+  real (hoje, atrasadas, consistência, conquistas) e últimos 7 dias.
 
 Acessibilidade: labels reais, foco visível, teclado, contraste AA,
 `aria-*`, áreas clicáveis adequadas. Responsivo: mobile, tablet e desktop.

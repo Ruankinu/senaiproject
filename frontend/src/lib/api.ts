@@ -9,10 +9,34 @@ const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/api'
 const TIMEOUT_MS = 10_000;
 const TOKEN_KEY = 'rithmo_token';
 
-export const obterToken = (): string | null => localStorage.getItem(TOKEN_KEY);
-export const salvarToken = (token: string): void =>
-  localStorage.setItem(TOKEN_KEY, token);
-export const limparToken = (): void => localStorage.removeItem(TOKEN_KEY);
+/**
+ * Storage resiliente: alguns ambientes (iframes de preview, navegadores com
+ * cookies/armazenamento bloqueado) lançam SecurityError ao acessar
+ * localStorage. Sem esta proteção, o token quebra o boot da aplicação.
+ */
+const memoria = new Map<string, string>();
+
+function armazenar(chave: string, valor: string | null): void {
+  try {
+    if (valor === null) localStorage.removeItem(chave);
+    else localStorage.setItem(chave, valor);
+  } catch {
+    if (valor === null) memoria.delete(chave);
+    else memoria.set(chave, valor);
+  }
+}
+
+function ler(chave: string): string | null {
+  try {
+    return localStorage.getItem(chave);
+  } catch {
+    return memoria.get(chave) ?? null;
+  }
+}
+
+export const obterToken = (): string | null => ler(TOKEN_KEY);
+export const salvarToken = (token: string): void => armazenar(TOKEN_KEY, token);
+export const limparToken = (): void => armazenar(TOKEN_KEY, null);
 
 export class ApiError extends Error {
   readonly status: number;

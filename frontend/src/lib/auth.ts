@@ -6,10 +6,20 @@ interface RespostaAuth {
   usuario: Usuario;
 }
 
+/**
+ * O login/registro retornam o usuário básico; o perfil completo (codigo do
+ * psicólogo, vínculo do paciente) só vem de /me. Buscamos /me após autenticar
+ * para que a sessão já comece com todos os dados do perfil.
+ */
+async function comPerfilCompleto(resposta: RespostaAuth): Promise<Usuario> {
+  salvarToken(resposta.token);
+  const perfil = await api.get<{ usuario: Usuario }>('/me');
+  return perfil.usuario;
+}
+
 export async function entrar(email: string, senha: string): Promise<Usuario> {
   const resposta = await api.post<RespostaAuth>('/auth/login', { email, senha });
-  salvarToken(resposta.token);
-  return resposta.usuario;
+  return comPerfilCompleto(resposta);
 }
 
 export async function registrar(dados: {
@@ -19,8 +29,7 @@ export async function registrar(dados: {
   perfil: Perfil;
 }): Promise<Usuario> {
   const resposta = await api.post<RespostaAuth>('/auth/registro', dados);
-  salvarToken(resposta.token);
-  return resposta.usuario;
+  return comPerfilCompleto(resposta);
 }
 
 export async function obterSessao(): Promise<Usuario | null> {

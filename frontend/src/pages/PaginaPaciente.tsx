@@ -1,25 +1,35 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Cabecalho } from '../components/Cabecalho';
 import { LinhaAtividade } from '../components/LinhaAtividade';
-import { BarraProgresso } from '../components/BarraProgresso';
 import { Icone } from '../components/Icone';
-import { EstadoVazio } from '../components/EstadoVazio';
+import { Barra } from '../components/Barra';
 import { Botao } from '../components/Botao';
+import { EstadoVazio } from '../components/EstadoVazio';
 import { useAuth } from '../context/AuthContext';
 import { usePacienteDetalhe } from '../hooks/dados';
-import { formatarDiaCurto, hojeISO, pluralizar } from '../lib/dates';
+import {
+  formatarDiaCurto,
+  formatarDiaExtenso,
+  hojeISO,
+  pluralizar,
+  rotuloRelativo,
+  somarDiasISO,
+} from '../lib/dates';
 
 /**
  * Visão do psicólogo sobre a rotina do paciente: acompanhamento,
- * sem diagnóstico e sem prontuário.
+ * sem diagnóstico e sem prontuário. Permite navegar entre dias reais.
  */
 export function PaginaPaciente() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { usuario, sair } = useAuth();
   const idNumerico = Number(id);
+  const [dia, setDia] = useState(hojeISO());
 
-  const { resumo, rotina } = usePacienteDetalhe(idNumerico);
+  const { resumo, rotina } = usePacienteDetalhe(idNumerico, dia);
+  const rotinaDoDia = rotina.dados;
 
   const aoSair = () => {
     sair();
@@ -27,6 +37,7 @@ export function PaginaPaciente() {
   };
 
   const nomePaciente = resumo.dados ? 'Rotina do paciente' : 'Paciente';
+  const relativo = rotuloRelativo(dia);
 
   return (
     <div className="container">
@@ -52,111 +63,141 @@ export function PaginaPaciente() {
           </section>
         ) : (
           <>
-            <header className="pagina__linha">
+            <header className="pagina__cabecalho">
               <div>
+                <p className="rotulo-data">Rotina de hoje</p>
                 <h1 className="titulo-pagina">{nomePaciente}</h1>
-                <p className="resumo">
-                  {formatarDiaCurto(rotina.dados?.data ?? hojeISO())}
+                <p className="subtitulo">
+                  {formatarDiaCurto(dia)}
                   {' · '}
-                  {rotina.dados?.concluidas ?? 0} de {rotina.dados?.total ?? 0}{' '}
-                  {pluralizar(rotina.dados?.total ?? 0, 'atividade', 'atividades')}{' '}
-                  hoje
+                  {(rotinaDoDia?.concluidas ?? 0)} de{' '}
+                  {(rotinaDoDia?.total ?? 0)}{' '}
+                  {pluralizar(rotinaDoDia?.total ?? 0, 'atividade', 'atividades')}{' '}
+                  concluídas
                 </p>
               </div>
             </header>
+
+            <nav className="pagina__nav-dia" aria-label="Navegar entre dias">
+              <button
+                type="button"
+                className="btn btn--icone"
+                aria-label="Dia anterior"
+                onClick={() => setDia(somarDiasISO(dia, -1))}
+              >
+                <Icone nome="arrow-left" tamanho={14} />
+              </button>
+              <span className="nav-dia__alvo">
+                {relativo ? `${relativo} · ` : ''}
+                {formatarDiaExtenso(dia)}
+              </span>
+              <button
+                type="button"
+                className="btn btn--icone"
+                aria-label="Próximo dia"
+                onClick={() => setDia(somarDiasISO(dia, 1))}
+              >
+                <Icone nome="chevron-right" tamanho={14} />
+              </button>
+              {dia !== hojeISO() && (
+                <Botao variante="fantasma" onClick={() => setDia(hojeISO())}>
+                  Hoje
+                </Botao>
+              )}
+            </nav>
 
             <div className="resumo-paciente">
               <div className="resumo-paciente__item">
                 <span className="resumo-paciente__valor">
                   {resumo.dados.hoje.concluidas}/{resumo.dados.hoje.total}
                 </span>
-                <span className="resumo-paciente__rotulo">hoje</span>
+                <span className="resumo-paciente__rotulo">atividades hoje</span>
               </div>
               <div className="resumo-paciente__item">
                 <span className="resumo-paciente__valor">
                   {resumo.dados.atrasadas}
                 </span>
-                <span className="resumo-paciente__rotulo">atrasadas</span>
+                <span className="resumo-paciente__rotulo">
+                  atrasadas em aberto
+                </span>
               </div>
               <div className="resumo-paciente__item">
                 <span className="resumo-paciente__valor">
                   {resumo.dados.progresso.streak}
                 </span>
-                <span className="resumo-paciente__rotulo">dias seguidos</span>
+                <span className="resumo-paciente__rotulo">
+                  dias de consistência
+                </span>
               </div>
               <div className="resumo-paciente__item">
                 <span className="resumo-paciente__valor">
-                  {
-                    resumo.dados.progresso.badges.filter((b) => b.aberta)
-                      .length
-                  }
+                  {resumo.dados.progresso.badges.filter((b) => b.aberta).length}
                 </span>
                 <span className="resumo-paciente__rotulo">conquistas</span>
               </div>
             </div>
 
-            <h2 className="secao__titulo secao__titulo--acima">
-              Rotina de hoje
-            </h2>
-
-            {rotina.dados && rotina.dados.total === 0 && (
+            {rotinaDoDia && rotinaDoDia.total === 0 && (
               <EstadoVazio
-                titulo="Nada planejado para hoje."
+                titulo="Nada planejado para este dia."
                 texto="O paciente ainda não adicionou atividades para esta data."
               />
             )}
 
-            {rotina.dados && rotina.dados.total > 0 && (
-              <>
-                <div className="pagina__progresso">
-                  <BarraProgresso
-                    valor={rotina.dados.progresso}
-                    rotulo={`Progresso do dia: ${rotina.dados.progresso}%`}
+            {rotinaDoDia && rotinaDoDia.total > 0 && (
+              <section
+                className="rotina"
+                aria-label={`Atividades de ${formatarDiaExtenso(dia)}`}
+              >
+                {rotinaDoDia.atividades.map((atividade) => (
+                  <LinhaAtividade
+                    key={atividade.id}
+                    atividade={atividade}
+                    somenteLeitura
                   />
-                </div>
-                <section className="atividades" aria-label="Atividades do paciente">
-                  {rotina.dados.atividades.map((atividade) => (
-                    <LinhaAtividade
-                      key={atividade.id}
-                      atividade={atividade}
-                      somenteLeitura
-                    />
-                  ))}
-                </section>
-              </>
+                ))}
+              </section>
             )}
 
-            <h2 className="secao__titulo secao__titulo--acima">
-              Últimos 7 dias
-            </h2>
+            <section className="secao" aria-label="Últimos 7 dias">
+              <header className="secao__cabecalho">
+                <div>
+                  <h2 className="secao__titulo">Últimos 7 dias</h2>
+                  <p className="secao__legenda">
+                    Execução diária — dados reais da rotina.
+                  </p>
+                </div>
+              </header>
 
-            <div className="historico">
-              {resumo.dados.ultimos7
-                .slice()
-                .reverse()
-                .map((dia) => {
-                  const percentual =
-                    dia.total === 0
-                      ? 0
-                      : Math.round((dia.concluidas / dia.total) * 100);
-                  return (
-                    <div key={dia.data} className="historico__dia">
-                      <span className="historico__rotulo">
-                        {formatarDiaCurto(dia.data)}
-                      </span>
-                      <span className="historico__barra">
-                        <BarraProgresso
+              <div className="historico">
+                {resumo.dados.ultimos7
+                  .slice()
+                  .reverse()
+                  .map((diaResumo) => {
+                    const percentual =
+                      diaResumo.total === 0
+                        ? 0
+                        : Math.round(
+                            (diaResumo.concluidas / diaResumo.total) * 100,
+                          );
+                    return (
+                      <div key={diaResumo.data} className="historico__dia">
+                        <span className="historico__rotulo">
+                          {formatarDiaCurto(diaResumo.data)}
+                        </span>
+                        <Barra
                           valor={percentual}
-                          rotulo={`${dia.concluidas} de ${dia.total} concluídas`}
+                          rotulo={`${diaResumo.concluidas} de ${diaResumo.total} atividades concluídas`}
+                          className="historico__trilho"
                         />
-                      </span>
-                      <span className="historico__valor">
-                        {dia.concluidas}/{dia.total}
-                      </span>
-                    </div>
-                  );
-                })}
-            </div>
+                        <span className="historico__valor">
+                          {diaResumo.concluidas}/{diaResumo.total}
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </section>
           </>
         )}
       </main>

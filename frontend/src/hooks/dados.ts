@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
-  Atividade,
   PacienteResumo,
   Progresso,
   ResumoPaciente,
@@ -8,7 +7,6 @@ import type {
   Usuario,
 } from '../types';
 import * as rithmo from '../lib/rithmo';
-import type { DadosAtividade } from '../lib/rithmo';
 
 interface Estado<T> {
   dados: T | null;
@@ -20,7 +18,18 @@ interface Carregado<T> extends Estado<T> {
   recarregar: () => Promise<void>;
 }
 
-function useCarregar<T>(buscar: () => Promise<T>): Carregado<T> {
+/**
+ * Carregador com estado: mantém o `buscar` atual em uma ref para nunca
+ * recriar o efeito a cada render (evita loop de requisições) e aceita
+ * dependências explícitas para recarregar quando elas mudam.
+ */
+function useCarregar<T>(
+  buscar: () => Promise<T>,
+  dependencias: readonly unknown[] = [],
+): Carregado<T> {
+  const buscarRef = useRef(buscar);
+  buscarRef.current = buscar;
+
   const [estado, setEstado] = useState<Estado<T>>({
     dados: null,
     carregando: true,
@@ -30,7 +39,7 @@ function useCarregar<T>(buscar: () => Promise<T>): Carregado<T> {
   const recarregar = useCallback(async () => {
     setEstado((atual) => ({ ...atual, carregando: true, erro: null }));
     try {
-      const dados = await buscar();
+      const dados = await buscarRef.current();
       setEstado({ dados, carregando: false, erro: null });
     } catch (e) {
       console.error('[dados] Falha ao carregar:', e);
@@ -40,11 +49,12 @@ function useCarregar<T>(buscar: () => Promise<T>): Carregado<T> {
         erro: 'Não foi possível carregar os dados.',
       }));
     }
-  }, [buscar]);
+  }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     void recarregar();
-  }, [recarregar]);
+  }, [recarregar, ...dependencias]);
 
   return { ...estado, recarregar };
 }
@@ -101,22 +111,16 @@ export function usePacientes() {
   return useCarregar(async () => (await rithmo.listarPacientes()).pacientes);
 }
 
-export function usePacienteDetalhe(id: number) {
+export function usePacienteDetalhe(id: number, dia: string) {
   const resumo = useCarregar(
     async () => (await rithmo.obterResumoPaciente(id)).resumo,
+    [id],
   );
   const rotina = useCarregar(
-    async () => (await rithmo.obterRotinaPaciente(id)).rotina,
+    async () => (await rithmo.obterRotinaPaciente(id, dia)).rotina,
+    [id, dia],
   );
   return { resumo, rotina };
 }
 
-export type {
-  Atividade,
-  DadosAtividade,
-  PacienteResumo,
-  Progresso,
-  ResumoPaciente,
-  RotinaDia,
-  Usuario,
-};
+export type { PacienteResumo, Progresso, ResumoPaciente, RotinaDia, Usuario };
