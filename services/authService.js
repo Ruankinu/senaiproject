@@ -1,5 +1,10 @@
 import bcrypt from 'bcryptjs';
-import { db } from '../db/database.js';
+import {
+    buscarOnde,
+    buscarPorId,
+    inserir,
+    contarOnde
+} from '../db/jsonStore.js';
 import { ApiError } from '../utils/ApiError.js';
 import { assinarToken } from '../middleware/auth.js';
 
@@ -15,7 +20,14 @@ function gerarCodigo() {
     return codigo;
 }
 
-const CAMPOS_USUARIO = 'id, nome, email, perfil, criado_em';
+function usuarioPublico(usuario) {
+    return {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        perfil: usuario.perfil
+    };
+}
 
 export async function registrar({ nome, email, senha, perfil }) {
     if (!nome?.trim()) throw new ApiError(400, 'Informe seu nome.');
@@ -31,9 +43,9 @@ export async function registrar({ nome, email, senha, perfil }) {
 
     const emailNormalizado = email.trim().toLowerCase();
 
-    const [existentes] = await db.query(
-        'SELECT id FROM usuarios WHERE email = ?',
-        [emailNormalizado]
+    const existentes = buscarOnde(
+        'usuarios',
+        (u) => u.email === emailNormalizado
     );
     if (existentes.length > 0) {
         throw new ApiError(409, 'Este e-mail já está cadastrado.');
@@ -41,42 +53,29 @@ export async function registrar({ nome, email, senha, perfil }) {
 
     const senhaHash = await bcrypt.hash(senha, 10);
 
-    const [resultado] = await db.query(
-        'INSERT INTO usuarios (nome, email, senha_hash, perfil) VALUES (?, ?, ?, ?)',
-        [nome.trim(), emailNormalizado, senhaHash, perfil]
-    );
-
-    // Fallback: alguns drivers de preview não retornam insertId.
-    let id = resultado.insertId;
-    if (!id) {
-        const [linhas] = await db.query(
-            'SELECT id FROM usuarios WHERE email = ?',
-            [emailNormalizado]
-        );
-        id = linhas[0]?.id;
-    }
-    if (!id) throw new ApiError(500, 'Não foi possível criar a conta.');
+    const usuario = await inserir('usuarios', {
+        nome: nome.trim(),
+        email: emailNormalizado,
+        senhaHash,
+        perfil,
+        criadoEm: new Date().toISOString()
+    });
 
     if (perfil === 'psicologo') {
         // Código único de vínculo (6 caracteres, sem ambiguidade visual).
         let codigo = '';
         for (let tentativa = 0; tentativa < 10; tentativa += 1) {
             codigo = gerarCodigo();
-            const [ocupado] = await db.query(
-                'SELECT 1 FROM psicologos WHERE codigo = ?',
-                [codigo]
+            const ocupado = buscarOnde(
+                'psicologos',
+                (p) => p.codigo === codigo
             );
             if (ocupado.length === 0) break;
         }
-        await db.query(
-            'INSERT INTO psicologos (usuario_id, codigo) VALUES (?, ?)',
-            [id, codigo]
-        );
+        await inserir('psicologos', { usuarioId: usuario.id, codigo });
     }
 
-    const usuario = { id, nome: nome.trim(), email: emailNormalizado, perfil };
-
-    return { token: assinarToken(usuario), usuario };
+    return { token: assinarToken(usuario), usuario: usuarioPublico(usuario) };
 }
 
 export async function login({ email, senha }) {
@@ -84,72 +83,60 @@ export async function login({ email, senha }) {
         throw new ApiError(400, 'Informe e-mail e senha.');
     }
 
-    const [linhas] = await db.query(
-        'SELECT id, nome, email, perfil, senha_hash FROM usuarios WHERE email = ?',
-        [email.trim().toLowerCase()]
+    const [usuario] = buscarOnde(
+        'usuarios',
+        (u) => u.email === email.trim().toLowerCase()
     );
 
-    if (linhas.length === 0) {
+    if (!usuario) {
         throw new ApiError(401, 'E-mail ou senha incorretos.');
     }
 
-    const usuario = linhas[0];
-    const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
+    const senhaValida = await bcrypt.compare(senha, usuario.senhaHash);
 
     if (!senhaValida) {
         throw new ApiError(401, 'E-mail ou senha incorretos.');
     }
 
-    return {
-        token: assinarToken(usuario),
-        usuario: {
-            id: usuario.id,
-            nome: usuario.nome,
-            email: usuario.email,
-            perfil: usuario.perfil
-        }
-    };
+    return { token: assinarToken(usuario), usuario: usuarioPublico(usuario) };
 }
 
 /** Dados do usuário autenticado + infos do perfil (código/vínculo). */
 export async function obterPerfil(usuarioId) {
-    const [linhas] = await db.query(
-        `SELECT ${CAMPOS_USUARIO} FROM usuarios WHERE id = ?`,
-        [usuarioId]
-    );
+    const usuario = buscarPorId('usuarios', Number(usuarioId));
 
-    if (linhas.length === 0) throw new ApiError(404, 'Usuário não encontrado.');
+    if (!usuario) throw new ApiError(404, 'Usuário não encontrado.');
 
-    const usuario = linhas[0];
+    const { senhaHash, ...publico } = usuario;
 
-    if (usuario.perfil === 'psicologo') {
-        const [psicologo] = await db.query(
-            'SELECT codigo FROM psicologos WHERE usuario_id = ?',
-            [usuarioId]
-        );
-        const [pacientes] = await db.query(
-            'SELECT COUNT(*) AS total FROM vinculos WHERE psicologo_id = ?',
-            [usuarioId]
+    if (publico.perfil === 'psicologo') {
+        const [psicologo] = buscarOnde(
+            'psicologos',
+            (p) => p.usuarioId === publico.id
         );
         return {
-            ...usuario,
-            codigo: psicologo[0]?.codigo ?? null,
-            pacientesVinculados: pacientes[0].total
+            ...publico,
+            codigo: psicologo?.codigo ?? null,
+            pacientesVinculados: contarOnde(
+                'vinculos',
+                (v) => v.psicologoId === publico.id
+            )
         };
     }
 
-    const [vinculos] = await db.query(
-        `SELECT u.id, u.nome, u.email
-         FROM vinculos v
-         JOIN usuarios u ON u.id = v.psicologo_id
-         WHERE v.paciente_id = ?
-         ORDER BY v.criado_em DESC
-         LIMIT 1`,
-        [usuarioId]
-    );
+    const vinculos = buscarOnde(
+        'vinculos',
+        (v) => v.pacienteId === publico.id
+    ).sort((a, b) => String(b.criadoEm).localeCompare(String(a.criadoEm)));
+
+    const psicologo = vinculos[0]
+        ? buscarPorId('usuarios', vinculos[0].psicologoId)
+        : null;
 
     return {
-        ...usuario,
-        psicologoVinculado: vinculos[0] ?? null
+        ...publico,
+        psicologoVinculado: psicologo
+            ? { id: psicologo.id, nome: psicologo.nome, email: psicologo.email }
+            : null
     };
 }

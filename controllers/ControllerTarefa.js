@@ -1,7 +1,39 @@
-import Tarefa from '../models/Tarefa.js';
-import conexao from '../db/database.js';
+import {
+    buscarOnde,
+    buscarPorId,
+    inserir,
+    atualizarOnde,
+    removerOnde
+} from '../db/jsonStore.js';
 
-export const cadastrarTarefa = (req, res) => {
+/**
+ * Rotas legadas de tarefas (mantidas por compatibilidade).
+ * Antes usavam MySQL direto; agora usam a persistência JSON.
+ * O contrato externo permanece idêntico (mitigando o risco de quebra).
+ */
+
+function paraResposta(linha) {
+    return {
+        id: linha.id,
+        titulo: linha.titulo,
+        tarefa: linha.tarefa,
+        prazo: linha.prazo,
+        prioridade: linha.prioridade,
+        status: linha.status,
+        criado_em: linha.criadoEm
+    };
+}
+
+function idValido(req, res) {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) {
+        res.status(400).json({ mensagem: 'ID da tarefa inválido.' });
+        return null;
+    }
+    return id;
+}
+
+export const cadastrarTarefa = async (req, res) => {
     try {
         const { titulo, tarefa, prazo, prioridade } = req.body;
 
@@ -11,146 +43,55 @@ export const cadastrarTarefa = (req, res) => {
             });
         }
 
-        const prioridadeFinal = prioridade || 'Média';
-
-        const sql = `
-            INSERT INTO tarefas
-            (titulo, tarefa, prazo, prioridade, status)
-            VALUES (?, ?, ?, ?, ?)
-        `;
-
-        conexao.query(
-            sql,
-            [titulo, tarefa, prazo, prioridadeFinal, 'Pendente'],
-            (erro, resultado) => {
-
-                if (erro) {
-                    console.error('Erro ao cadastrar tarefa:', erro);
-
-                    return res.status(500).json({
-                        mensagem: 'Erro ao cadastrar tarefa.'
-                    });
-                }
-
-                const novaTarefa = new Tarefa(
-                    resultado.insertId,
-                    titulo,
-                    tarefa,
-                    prazo,
-                    prioridadeFinal
-                );
-
-                novaTarefa.status = 'Pendente';
-
-                return res.status(201).json({
-                    mensagem: 'Tarefa cadastrada com sucesso',
-                    tarefa: novaTarefa
-                });
-            }
-        );
-
-    } catch (erro) {
-        console.error('Erro interno:', erro);
-
-        return res.status(500).json({
-            mensagem: 'Erro interno do servidor.'
+        const linha = await inserir('tarefas', {
+            titulo,
+            tarefa,
+            prazo,
+            prioridade: prioridade || 'Média',
+            status: 'Pendente',
+            criadoEm: new Date().toISOString()
         });
+
+        return res.status(201).json({
+            mensagem: 'Tarefa cadastrada com sucesso',
+            tarefa: paraResposta(linha)
+        });
+    } catch (erro) {
+        console.error('[tarefa] Erro ao cadastrar:', erro);
+        return res.status(500).json({ mensagem: 'Erro ao cadastrar tarefa.' });
     }
 };
 
 export const listarTarefas = (req, res) => {
+    try {
+        const tarefas = buscarOnde('tarefas', () => true)
+            .sort((a, b) => String(a.prazo).localeCompare(String(b.prazo)))
+            .map(paraResposta);
 
-    const sql = `
-        SELECT
-            id,
-            titulo,
-            tarefa,
-            prazo,
-            prioridade,
-            status,
-            criado_em
-        FROM tarefas
-        ORDER BY prazo ASC
-    `;
-
-    conexao.query(sql, (erro, resultados) => {
-
-        if (erro) {
-            console.error('Erro ao listar tarefas:', erro);
-
-            return res.status(500).json({
-                mensagem: 'Erro ao listar tarefas.'
-            });
-        }
-
-        return res.status(200).json({
-            quantidade: resultados.length,
-            tarefas: resultados
-        });
-    });
+        return res.status(200).json({ quantidade: tarefas.length, tarefas });
+    } catch (erro) {
+        console.error('[tarefa] Erro ao listar:', erro);
+        return res.status(500).json({ mensagem: 'Erro ao listar tarefas.' });
+    }
 };
+
 export const buscarTarefaPorId = (req, res) => {
+    const id = idValido(req, res);
+    if (id === null) return;
 
-    const id = Number(req.params.id);
-
-    if (isNaN(id)) {
-        return res.status(400).json({
-            mensagem: 'ID da tarefa inválido.'
-        });
+    const linha = buscarPorId('tarefas', id);
+    if (!linha) {
+        return res.status(404).json({ mensagem: 'Tarefa não encontrada.' });
     }
 
-    const sql = `
-        SELECT
-            id,
-            titulo,
-            tarefa,
-            prazo,
-            prioridade,
-            status,
-            criado_em
-        FROM tarefas
-        WHERE id = ?
-    `;
-
-    conexao.query(sql, [id], (erro, resultados) => {
-
-        if (erro) {
-            console.error('Erro ao buscar tarefa:', erro);
-
-            return res.status(500).json({
-                mensagem: 'Erro ao buscar tarefa.'
-            });
-        }
-
-        if (resultados.length === 0) {
-            return res.status(404).json({
-                mensagem: 'Tarefa não encontrada.'
-            });
-        }
-
-        return res.status(200).json({
-            tarefa: resultados[0]
-        });
-    });
+    return res.status(200).json({ tarefa: paraResposta(linha) });
 };
 
-export const editarTarefa = (req, res) => {
+export const editarTarefa = async (req, res) => {
+    const id = idValido(req, res);
+    if (id === null) return;
 
-    const id = Number(req.params.id);
-
-    if (isNaN(id)) {
-        return res.status(400).json({
-            mensagem: 'ID da tarefa inválido.'
-        });
-    }
-
-    const {
-        titulo,
-        tarefa,
-        prazo,
-        prioridade,
-        status
-    } = req.body;
+    const { titulo, tarefa, prazo, prioridade, status } = req.body;
 
     if (
         titulo === undefined &&
@@ -164,248 +105,53 @@ export const editarTarefa = (req, res) => {
         });
     }
 
-    const sqlVerificar = `
-        SELECT id
-        FROM tarefas
-        WHERE id = ?
-    `;
+    if (!buscarPorId('tarefas', id)) {
+        return res.status(404).json({ mensagem: 'Tarefa não encontrada.' });
+    }
 
-    conexao.query(sqlVerificar, [id], (erro, resultados) => {
+    const mudancas = {};
+    if (titulo !== undefined) mudancas.titulo = titulo;
+    if (tarefa !== undefined) mudancas.tarefa = tarefa;
+    if (prazo !== undefined) mudancas.prazo = prazo;
+    if (prioridade !== undefined) mudancas.prioridade = prioridade;
+    if (status !== undefined) mudancas.status = status;
 
-        if (erro) {
-            console.error('Erro ao verificar tarefa:', erro);
+    const linha = await atualizarOnde('tarefas', (t) => t.id === id, mudancas);
 
-            return res.status(500).json({
-                mensagem: 'Erro ao verificar tarefa.'
-            });
-        }
-
-        if (resultados.length === 0) {
-            return res.status(404).json({
-                mensagem: 'Tarefa não encontrada.'
-            });
-        }
-
-        const campos = [];
-        const valores = [];
-
-        if (titulo !== undefined) {
-            campos.push('titulo = ?');
-            valores.push(titulo);
-        }
-
-        if (tarefa !== undefined) {
-            campos.push('tarefa = ?');
-            valores.push(tarefa);
-        }
-
-        if (prazo !== undefined) {
-            campos.push('prazo = ?');
-            valores.push(prazo);
-        }
-
-        if (prioridade !== undefined) {
-            campos.push('prioridade = ?');
-            valores.push(prioridade);
-        }
-
-        if (status !== undefined) {
-            campos.push('status = ?');
-            valores.push(status);
-        }
-
-        valores.push(id);
-
-        const sql = `
-            UPDATE tarefas
-            SET ${campos.join(', ')}
-            WHERE id = ?
-        `;
-
-        conexao.query(sql, valores, (erro) => {
-
-            if (erro) {
-                console.error('Erro ao editar tarefa:', erro);
-
-                return res.status(500).json({
-                    mensagem: 'Erro ao editar tarefa.'
-                });
-            }
-
-            const sqlBuscar = `
-                SELECT
-                    id,
-                    titulo,
-                    tarefa,
-                    prazo,
-                    prioridade,
-                    status,
-                    criado_em
-                FROM tarefas
-                WHERE id = ?
-            `;
-
-            conexao.query(sqlBuscar, [id], (erro, resultados) => {
-
-                if (erro) {
-                    console.error('Erro ao buscar tarefa atualizada:', erro);
-
-                    return res.status(500).json({
-                        mensagem: 'Tarefa atualizada, mas houve erro ao retorná-la.'
-                    });
-                }
-
-                return res.status(200).json({
-                    mensagem: 'Tarefa atualizada com sucesso',
-                    tarefa: resultados[0]
-                });
-            });
-        });
+    return res.status(200).json({
+        mensagem: 'Tarefa atualizada com sucesso',
+        tarefa: paraResposta(linha)
     });
 };
 
+export const excluirTarefa = async (req, res) => {
+    const id = idValido(req, res);
+    if (id === null) return;
 
-export const excluirTarefa = (req, res) => {
-
-    const id = Number(req.params.id);
-
-    if (isNaN(id)) {
-        return res.status(400).json({
-            mensagem: 'ID da tarefa inválido.'
-        });
+    if (!buscarPorId('tarefas', id)) {
+        return res.status(404).json({ mensagem: 'Tarefa não encontrada.' });
     }
 
-    const sqlVerificar = `
-        SELECT id
-        FROM tarefas
-        WHERE id = ?
-    `;
-
-    conexao.query(sqlVerificar, [id], (erro, resultados) => {
-
-        if (erro) {
-            console.error('Erro ao verificar tarefa:', erro);
-
-            return res.status(500).json({
-                mensagem: 'Erro ao verificar tarefa.'
-            });
-        }
-
-        if (resultados.length === 0) {
-            return res.status(404).json({
-                mensagem: 'Tarefa não encontrada.'
-            });
-        }
-
-        const sql = `
-            DELETE FROM tarefas
-            WHERE id = ?
-        `;
-
-        conexao.query(sql, [id], (erro) => {
-
-            if (erro) {
-                console.error('Erro ao excluir tarefa:', erro);
-
-                return res.status(500).json({
-                    mensagem: 'Erro ao excluir tarefa.'
-                });
-            }
-
-            return res.status(200).json({
-                mensagem: 'Tarefa excluída com sucesso.'
-            });
-        });
-    });
+    await removerOnde('tarefas', (t) => t.id === id);
+    return res.status(200).json({ mensagem: 'Tarefa excluída com sucesso.' });
 };
 
-export const concluirTarefa = (req, res) => {
+export const concluirTarefa = async (req, res) => {
+    const id = idValido(req, res);
+    if (id === null) return;
 
-    const id = Number(req.params.id);
-
-    if (isNaN(id)) {
-        return res.status(400).json({
-            mensagem: 'ID da tarefa inválido.'
-        });
+    if (!buscarPorId('tarefas', id)) {
+        return res.status(404).json({ mensagem: 'Tarefa não encontrada.' });
     }
 
-    const sqlVerificar = `
-        SELECT id
-        FROM tarefas
-        WHERE id = ?
-    `;
+    const linha = await atualizarOnde(
+        'tarefas',
+        (t) => t.id === id,
+        { status: 'Concluída' }
+    );
 
-    conexao.query(sqlVerificar, [id], (erro, resultados) => {
-
-        if (erro) {
-            console.error('Erro ao verificar tarefa:', erro);
-
-            return res.status(500).json({
-                mensagem: 'Erro ao verificar tarefa.'
-            });
-        }
-
-        if (resultados.length === 0) {
-            return res.status(404).json({
-                mensagem: 'Tarefa não encontrada.'
-            });
-        }
-
-        const sql = `
-            UPDATE tarefas
-            SET status = ?
-            WHERE id = ?
-        `;
-
-        conexao.query(
-            sql,
-            ['Concluída', id],
-            (erro) => {
-
-                if (erro) {
-                    console.error('Erro ao concluir tarefa:', erro);
-
-                    return res.status(500).json({
-                        mensagem: 'Erro ao concluir tarefa.'
-                    });
-                }
-
-                const sqlBuscar = `
-                    SELECT
-                        id,
-                        titulo,
-                        tarefa,
-                        prazo,
-                        prioridade,
-                        status,
-                        criado_em
-                    FROM tarefas
-                    WHERE id = ?
-                `;
-
-                conexao.query(
-                    sqlBuscar,
-                    [id],
-                    (erro, resultados) => {
-
-                        if (erro) {
-                            console.error(
-                                'Erro ao buscar tarefa concluída:',
-                                erro
-                            );
-
-                            return res.status(500).json({
-                                mensagem: 'Tarefa concluída, mas houve erro ao retorná-la.'
-                            });
-                        }
-
-                        return res.status(200).json({
-                            mensagem: 'Tarefa concluída com sucesso',
-                            tarefa: resultados[0]
-                        });
-                    }
-                );
-            }
-        );
+    return res.status(200).json({
+        mensagem: 'Tarefa concluída com sucesso',
+        tarefa: paraResposta(linha)
     });
 };

@@ -1,4 +1,4 @@
-import { db } from '../db/database.js';
+import { buscarOnde } from '../db/jsonStore.js';
 
 const BADGES = [
     { id: 'primeiro-passo', nome: 'Primeiro passo', meta: 1 },
@@ -28,15 +28,13 @@ function diasEntre(a, b) {
  * um dia conta para a sequência quando o paciente concluiu pelo menos uma
  * atividade planejada naquele dia (prazo = dia).
  */
-async function datasConcluidas(usuarioId) {
-    const [linhas] = await db.query(
-        `SELECT DISTINCT prazo
-         FROM atividades
-         WHERE usuario_id = ? AND status = 'Concluída'`,
-        [usuarioId]
+function datasConcluidas(usuarioId) {
+    const concluidas = buscarOnde(
+        'atividades',
+        (a) => a.usuarioId === Number(usuarioId) && a.status === 'Concluída'
     );
 
-    const datas = linhas
+    const datas = concluidas
         .map((linha) => paraData(linha.prazo))
         .filter(Boolean)
         .sort((a, b) => a.getTime() - b.getTime());
@@ -82,8 +80,8 @@ function sequenciaAtual(datas) {
 }
 
 /** Progresso do paciente: streak atual, melhor streak e badges reais. */
-export async function obterProgresso(usuarioId) {
-    const datas = await datasConcluidas(usuarioId);
+export function obterProgresso(usuarioId) {
+    const datas = datasConcluidas(usuarioId);
     const melhor = melhorSequencia(datas);
     const streak = sequenciaAtual(datas);
 
@@ -106,52 +104,40 @@ function deslocarDias(deslocamento) {
     return `${data.getFullYear()}-${mes}-${dia}`;
 }
 
+function resumoDoDia(pacienteId, dia) {
+    const atividades = buscarOnde(
+        'atividades',
+        (a) => a.usuarioId === Number(pacienteId) && a.prazo === dia
+    );
+
+    return {
+        data: dia,
+        total: atividades.length,
+        concluidas: atividades.filter((a) => a.status === 'Concluída').length
+    };
+}
+
 /** Resumo da rotina do paciente para o psicólogo acompanhar. */
-export async function obterResumoPaciente(pacienteId) {
+export function obterResumoPaciente(pacienteId) {
     const hoje = deslocarDias(0);
-    const progresso = await obterProgresso(pacienteId);
-
-    const [hojeLinhas] = await db.query(
-        `SELECT
-            COUNT(*) AS total,
-            SUM(status = 'Concluída') AS concluidas
-         FROM atividades
-         WHERE usuario_id = ? AND prazo = ?`,
-        [pacienteId, hoje]
+    const progresso = obterProgresso(pacienteId);
+    const todas = buscarOnde(
+        'atividades',
+        (a) => a.usuarioId === Number(pacienteId)
     );
 
-    const [atrasadas] = await db.query(
-        `SELECT COUNT(*) AS total
-         FROM atividades
-         WHERE usuario_id = ? AND prazo < ? AND status = 'Pendente'`,
-        [pacienteId, hoje]
-    );
+    const atrasadas = todas.filter(
+        (a) => a.prazo < hoje && a.status === 'Pendente'
+    ).length;
 
     const ultimos7 = [];
     for (let deslocamento = -6; deslocamento <= 0; deslocamento += 1) {
-        const dia = deslocarDias(deslocamento);
-        const [linhas] = await db.query(
-            `SELECT
-                COUNT(*) AS total,
-                SUM(status = 'Concluída') AS concluidas
-             FROM atividades
-             WHERE usuario_id = ? AND prazo = ?`,
-            [pacienteId, dia]
-        );
-        ultimos7.push({
-            data: dia,
-            total: linhas[0].total,
-            concluidas: linhas[0].concluidas ?? 0
-        });
+        ultimos7.push(resumoDoDia(pacienteId, deslocarDias(deslocamento)));
     }
 
     return {
-        hoje: {
-            data: hoje,
-            total: hojeLinhas[0].total,
-            concluidas: hojeLinhas[0].concluidas ?? 0
-        },
-        atrasadas: atrasadas[0].total,
+        hoje: resumoDoDia(pacienteId, hoje),
+        atrasadas,
         ultimos7,
         progresso
     };

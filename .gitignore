@@ -5,11 +5,9 @@ node_modules/
 frontend/dist/
 *.tsbuildinfo
 
-# Bancos locais de preview
-*.sqlite3
-preview-db/
+# Dados locais do MVP (persistência JSON)
+data/
 
 # Ambiente
 .env
 .env.local
-.venv-db/

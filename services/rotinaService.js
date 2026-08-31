@@ -1,10 +1,14 @@
-import { db } from '../db/database.js';
+import {
+    buscarOnde,
+    buscarPorId,
+    inserir,
+    atualizarOnde,
+    removerOnde
+} from '../db/jsonStore.js';
 import { ApiError } from '../utils/ApiError.js';
 
 export const PRIORIDADES = ['Baixa', 'Média', 'Alta'];
 export const COMPLEXIDADES = ['Fácil', 'Moderada', 'Intensa'];
-
-const CAMPOS = `id, titulo, descricao, prazo, horario, prioridade, complexidade, status, criado_em`;
 
 function validarDados(dados, { parcial = false } = {}) {
     const resultado = {};
@@ -36,7 +40,7 @@ function validarDados(dados, { parcial = false } = {}) {
         } else if (!/^\d{2}:\d{2}$/.test(String(dados.horario))) {
             throw new ApiError(400, 'Horário inválido. Use HH:MM.');
         } else {
-            resultado.horario = `${String(dados.horario)}:00`;
+            resultado.horario = String(dados.horario);
         }
     }
 
@@ -66,140 +70,117 @@ function validarDados(dados, { parcial = false } = {}) {
     return resultado;
 }
 
+/** Formata o registro interno para o contrato da API. */
 function montarObjeto(linha) {
     return {
-        ...linha,
+        id: linha.id,
+        titulo: linha.titulo,
+        descricao: linha.descricao ?? null,
+        prazo: linha.prazo,
         horario: linha.horario ? String(linha.horario).slice(0, 5) : null,
-        criadoEm: linha.criado_em,
-        concluidaEm: linha.concluida_em ?? null
+        prioridade: linha.prioridade,
+        complexidade: linha.complexidade,
+        status: linha.status,
+        criadoEm: linha.criadoEm,
+        concluidaEm: linha.concluidaEm ?? null
     };
 }
 
-export async function listarAtividades(usuarioId, { status, data } = {}) {
-    const clausulas = ['usuario_id = ?'];
-    const parametros = [usuarioId];
+function ordenarPorHorario(atividades) {
+    return atividades.sort((a, b) => {
+        const ha = a.horario ?? '99:99';
+        const hb = b.horario ?? '99:99';
+        if (ha !== hb) return ha.localeCompare(hb);
+        return (a.id ?? 0) - (b.id ?? 0);
+    });
+}
 
-    if (status) {
-        clausulas.push('status = ?');
-        parametros.push(status);
-    }
-    if (data) {
-        clausulas.push('prazo = ?');
-        parametros.push(data);
-    }
-
-    const [linhas] = await db.query(
-        `SELECT ${CAMPOS}, concluida_em
-         FROM atividades
-         WHERE ${clausulas.join(' AND ')}
-         ORDER BY horario IS NULL, horario ASC, id ASC`,
-        parametros
+export function listarAtividades(usuarioId, { status, data } = {}) {
+    let atividades = buscarOnde(
+        'atividades',
+        (a) => a.usuarioId === Number(usuarioId)
     );
 
-    return linhas.map(montarObjeto);
+    if (status) atividades = atividades.filter((a) => a.status === status);
+    if (data) atividades = atividades.filter((a) => a.prazo === data);
+
+    return ordenarPorHorario(atividades).map(montarObjeto);
 }
 
 export async function criarAtividade(usuarioId, dados) {
     const validos = validarDados(dados);
 
-    const [resultado] = await db.query(
-        `INSERT INTO atividades
-         (usuario_id, titulo, descricao, prazo, horario, prioridade, complexidade)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-            usuarioId,
-            validos.titulo,
-            validos.descricao ?? null,
-            validos.prazo,
-            validos.horario ?? null,
-            validos.prioridade,
-            validos.complexidade
-        ]
-    );
+    const linha = await inserir('atividades', {
+        usuarioId: Number(usuarioId),
+        titulo: validos.titulo,
+        descricao: validos.descricao ?? null,
+        prazo: validos.prazo,
+        horario: validos.horario ?? null,
+        prioridade: validos.prioridade,
+        complexidade: validos.complexidade,
+        status: 'Pendente',
+        concluidaEm: null,
+        criadoEm: new Date().toISOString()
+    });
 
-    // Fallback: alguns drivers de preview não retornam insertId.
-    let id = resultado.insertId;
-    if (!id) {
-        const [linhas] = await db.query(
-            'SELECT id FROM atividades WHERE usuario_id = ? ORDER BY id DESC LIMIT 1',
-            [usuarioId]
-        );
-        id = linhas[0]?.id;
-    }
-    if (!id) throw new ApiError(500, 'Não foi possível criar a atividade.');
-
-    return buscarAtividade(usuarioId, id);
+    return montarObjeto(linha);
 }
 
-export async function buscarAtividade(usuarioId, id) {
-    const [linhas] = await db.query(
-        `SELECT ${CAMPOS}, concluida_em
-         FROM atividades
-         WHERE id = ? AND usuario_id = ?`,
-        [id, usuarioId]
-    );
+export function buscarAtividade(usuarioId, id) {
+    const linha = buscarPorId('atividades', Number(id));
 
-    if (linhas.length === 0) {
+    if (!linha || linha.usuarioId !== Number(usuarioId)) {
         throw new ApiError(404, 'Atividade não encontrada.');
     }
 
-    return montarObjeto(linhas[0]);
+    return montarObjeto(linha);
 }
 
 export async function atualizarAtividade(usuarioId, id, dados) {
-    await buscarAtividade(usuarioId, id);
+    buscarAtividade(usuarioId, id);
 
     const validos = validarDados(dados, { parcial: true });
     if (Object.keys(validos).length === 0) {
         throw new ApiError(400, 'Nenhum dado foi enviado para atualização.');
     }
 
-    const campos = Object.keys(validos).map((campo) => `${campo} = ?`);
-    const valores = Object.values(validos);
-
-    await db.query(
-        `UPDATE atividades SET ${campos.join(', ')} WHERE id = ? AND usuario_id = ?`,
-        [...valores, id, usuarioId]
+    const linha = await atualizarOnde(
+        'atividades',
+        (a) => a.id === Number(id) && a.usuarioId === Number(usuarioId),
+        validos
     );
 
-    return buscarAtividade(usuarioId, id);
+    return montarObjeto(linha);
 }
 
 export async function excluirAtividade(usuarioId, id) {
-    // A existência já foi validada; o DELETE não depende de affectedRows
-    // (alguns drivers de preview reportam 0 mesmo com sucesso).
-    await buscarAtividade(usuarioId, id);
-    await db.query(
-        'DELETE FROM atividades WHERE id = ? AND usuario_id = ?',
-        [id, usuarioId]
+    buscarAtividade(usuarioId, id);
+    await removerOnde(
+        'atividades',
+        (a) => a.id === Number(id) && a.usuarioId === Number(usuarioId)
     );
 }
 
 export async function alternarConclusao(usuarioId, id) {
-    // A existência já foi validada; o UPDATE não depende de affectedRows
-    // (alguns drivers de preview reportam 0 mesmo com sucesso).
-    const atividade = await buscarAtividade(usuarioId, id);
+    const atividade = buscarAtividade(usuarioId, id);
 
     const concluindo = atividade.status !== 'Concluída';
 
-    await db.query(
-        `UPDATE atividades
-         SET status = ?, concluida_em = ?
-         WHERE id = ? AND usuario_id = ?`,
-        [
-            concluindo ? 'Concluída' : 'Pendente',
-            concluindo ? new Date().toISOString() : null,
-            id,
-            usuarioId
-        ]
+    const linha = await atualizarOnde(
+        'atividades',
+        (a) => a.id === Number(id) && a.usuarioId === Number(usuarioId),
+        {
+            status: concluindo ? 'Concluída' : 'Pendente',
+            concluidaEm: concluindo ? new Date().toISOString() : null
+        }
     );
 
-    return buscarAtividade(usuarioId, id);
+    return montarObjeto(linha);
 }
 
 /** Rotina de um dia: atividades ordenadas por horário + progresso. */
-export async function rotinaDoDia(usuarioId, data) {
-    const atividades = await listarAtividades(usuarioId, { data });
+export function rotinaDoDia(usuarioId, data) {
+    const atividades = listarAtividades(usuarioId, { data });
     const total = atividades.length;
     const concluidas = atividades.filter(
         (atividade) => atividade.status === 'Concluída'

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { db } from '../db/database.js';
+import { buscarPorId } from '../db/jsonStore.js';
 
 const SEGREDO = process.env.JWT_SECRET || 'rithmo-dev-secret';
 
@@ -14,7 +14,7 @@ export function assinarToken(usuario) {
 
 /**
  * Middleware de autenticação: valida o Bearer token e anexa o usuário
- * real (buscado no banco) em `req.usuario`.
+ * real (buscado na persistência JSON) em `req.usuario`.
  */
 export async function requireAuth(req, res, next) {
     try {
@@ -29,16 +29,13 @@ export async function requireAuth(req, res, next) {
 
         const payload = jwt.verify(token, SEGREDO);
 
-        const [linhas] = await db.query(
-            'SELECT id, nome, email, perfil FROM usuarios WHERE id = ?',
-            [payload.sub]
-        );
+        const usuario = buscarPorId('usuarios', Number(payload.sub));
 
-        if (linhas.length === 0) {
+        if (!usuario) {
             return res.status(401).json({ mensagem: 'Sessão inválida.' });
         }
 
-        req.usuario = linhas[0];
+        req.usuario = usuario;
         return next();
     } catch (erro) {
         if (

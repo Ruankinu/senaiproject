@@ -1,11 +1,18 @@
 /**
- * Seed de demonstração do MVP — cria usuários reais via services,
- * com rotinas de hoje e histórico próximo para exibir streak/badges.
- * Idempotente: não duplica e-mails já existentes.
+ * Seed de demonstração do MVP — dados de verdade persistidos em data/*.json.
  *
- * Uso: npm run db:seed
+ * Uso:
+ *   npm run db:seed        # semeia (idempotente)
+ *   node db/seed.js --reset  # apaga data/ e semeia do zero
  */
-import { db } from './database.js';
+import {
+    iniciar,
+    limparTudo,
+    buscarOnde,
+    colecaoVazia,
+    atualizarOnde,
+    inserir
+} from './jsonStore.js';
 import { registrar } from '../services/authService.js';
 import { criarAtividade, alternarConclusao } from '../services/rotinaService.js';
 import { vincularPorCodigo } from '../services/vinculoService.js';
@@ -20,25 +27,19 @@ function dataDeslocada(deslocamento) {
 }
 
 async function buscarOuRegistrar(email, dados) {
-    const [existentes] = await db.query(
-        'SELECT id, nome, email, perfil FROM usuarios WHERE email = ?',
-        [email]
-    );
-    if (existentes.length > 0) return existentes[0];
+    const [existente] = buscarOnde('usuarios', (u) => u.email === email);
+    if (existente) return existente;
     const { usuario } = await registrar(dados);
     return usuario;
 }
 
-async function temAtividades(usuarioId) {
-    const [linhas] = await db.query(
-        'SELECT COUNT(*) AS total FROM atividades WHERE usuario_id = ?',
-        [usuarioId]
-    );
-    return linhas[0].total > 0;
+function temAtividades(usuarioId) {
+    return !colecaoVazia('atividades') &&
+        buscarOnde('atividades', (a) => a.usuarioId === usuarioId).length > 0;
 }
 
 async function semearAna(ana) {
-    if (await temAtividades(ana.id)) return;
+    if (temAtividades(ana.id)) return;
     const ontem = dataDeslocada(-1);
     const hoje = dataDeslocada(0);
 
@@ -105,7 +106,7 @@ async function semearAna(ana) {
 }
 
 async function semearLucas(lucas) {
-    if (await temAtividades(lucas.id)) return;
+    if (temAtividades(lucas.id)) return;
     const hoje = dataDeslocada(0);
 
     await criarAtividade(lucas.id, {
@@ -127,7 +128,13 @@ async function semearLucas(lucas) {
 }
 
 async function main() {
-    console.log('Semeando dados de demonstração...');
+    const reset = process.argv.includes('--reset');
+    await iniciar();
+
+    if (reset) {
+        console.log('Reset: apagando data/ e semeando do zero...');
+        await limparTudo();
+    }
 
     const psicologa = await buscarOuRegistrar('psicologa@rithmo.app', {
         nome: 'Dra. Marina Costa',
@@ -148,26 +155,16 @@ async function main() {
         perfil: 'paciente'
     });
 
-    // Limpa linhas órfãs (resíduos de execuções anteriores no preview)
-    await db.query(
-        'DELETE FROM psicologos WHERE usuario_id NOT IN (SELECT id FROM usuarios)'
-    );
-
-    // Garante o perfil psicólogo e o código fixo da conta demo
-    const [perfilExiste] = await db.query(
-        'SELECT 1 FROM psicologos WHERE usuario_id = ?',
-        [psicologa.id]
-    );
-    if (perfilExiste.length === 0) {
-        await db.query(
-            'INSERT INTO psicologos (usuario_id, codigo) VALUES (?, ?)',
-            [psicologa.id, 'RITMO1']
+    // Código fixo da conta demo de psicólogo.
+    const [perfil] = buscarOnde('psicologos', (p) => p.usuarioId === psicologa.id);
+    if (perfil) {
+        await atualizarOnde(
+            'psicologos',
+            (p) => p.usuarioId === psicologa.id,
+            { codigo: 'RITMO1' }
         );
     } else {
-        await db.query(
-            "UPDATE psicologos SET codigo = 'RITMO1' WHERE usuario_id = ?",
-            [psicologa.id]
-        );
+        await inserir('psicologos', { usuarioId: psicologa.id, codigo: 'RITMO1' });
     }
 
     await vincularPorCodigo(ana.id, 'RITMO1');
@@ -181,8 +178,6 @@ async function main() {
     console.log('  paciente  ana@rithmo.app / 123456');
     console.log('  paciente  lucas@rithmo.app / 123456');
     console.log('  psicóloga psicologa@rithmo.app / 123456 (código RITMO1)');
-
-    process.exit(0);
 }
 
 main().catch((erro) => {

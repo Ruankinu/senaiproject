@@ -23,7 +23,7 @@ Arquivos existentes (5, todos `.js`):
 | `routes/Routes.js` | Define as rotas da API e conecta ao controller |
 | `controllers/ControllerTarefa.js` | Lógica de negócio (CRUD completo) — 411 linhas |
 | `models/Tarefa.js` | Classe `Tarefa` (entidade do domínio) |
-| `db/database.js` | Conexão MySQL (mysql2) |
+| `db/jsonStore.js` | Persistência JSON local (data/*.json) |
 
 **O que NÃO existe no repositório:**
 - ❌ Frontend (nenhuma tela/página)
@@ -39,7 +39,7 @@ Arquivos existentes (5, todos `.js`):
 ## 2. TECNOLOGIA DO BACKEND (contexto)
 
 - **Node.js** + **Express**
-- **MySQL** via `mysql2` (conexão em `db/database.js` com host `localhost`, user `root`, sem senha, banco `rithmo`)
+- **Persistência JSON** (arquivos em `data/` via `db/jsonStore.js`) — sem MySQL/SQLite
 - **cors** habilitado globalmente (aceita qualquer origem — o front pode consumir sem problemas)
 - JSON via `express.json()`
 - Servidor escuta em **porta 3000** (`http://localhost:3000`)
@@ -199,4 +199,4 @@ Como a API é de CRUD de tarefas, o frontend deve contemplar estes fluxos (a qua
 
 ## 8. RESUMO PARA A NOVA IA (versão curta)
 
-> Crie um frontend do zero para uma API Express de gerenciamento de tarefas (MySQL). A API roda em `http://localhost:3000`, usa JSON e aceita CORS de qualquer origem. Rotas: `POST /cadastrarTarefa` (criar), `GET /` (listar, já ordenada por prazo), `GET /:id` (detalhe), `PUT /:id` (edição parcial), `DELETE /:id` (excluir), `PATCH /:id/concluir` (concluir). Campos: `titulo`, `tarefa`, `prazo`, `prioridade` (default `Média`), `status` (`Pendente`/`Concluída`), `criado_em`. Telas: lista de tarefas, cadastro, detalhe (opcional) e edição, com validação, loading, estado vazio, feedback de erro/sucesso e cores por prioridade/status. Não há frontend, package.json, README nem script SQL no repositório — tudo será criado do zero.
+> Crie um frontend do zero para uma API Express de gerenciamento de tarefas (persistência JSON, sem MySQL). A API roda em `http://localhost:3000`, usa JSON e aceita CORS de qualquer origem. Rotas: `POST /cadastrarTarefa` (criar), `GET /` (listar, já ordenada por prazo), `GET /:id` (detalhe), `PUT /:id` (edição parcial), `DELETE /:id` (excluir), `PATCH /:id/concluir` (concluir). Campos: `titulo`, `tarefa`, `prazo`, `prioridade` (default `Média`), `status` (`Pendente`/`Concluída`), `criado_em`. Telas: lista de tarefas, cadastro, detalhe (opcional) e edição, com validação, loading, estado vazio, feedback de erro/sucesso e cores por prioridade/status. Não há frontend, package.json, README nem script SQL no repositório — tudo será criado do zero.

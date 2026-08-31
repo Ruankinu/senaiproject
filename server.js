@@ -8,6 +8,7 @@ import AuthRoutes from './routes/AuthRoutes.js';
 import ApiRoutes from './routes/ApiRoutes.js';
 import Routes from './routes/Routes.js';
 import { requireAuth } from './middleware/auth.js';
+import { iniciar } from './db/jsonStore.js';
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +45,9 @@ if (fs.existsSync(INDEX)) {
 app.use('/', Routes);
 
 const PORTA = Number(process.env.PORT || 3000);
+
+// Persistência JSON: carrega (ou cria) data/*.json antes de aceitar conexões.
+await iniciar();
 
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`);

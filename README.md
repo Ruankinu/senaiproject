@@ -26,34 +26,32 @@ Paciente ↔ Rotina ↔ Psicólogo
 ├── services/                  # Regras de negócio (auth, rotina, gamificação, vínculo)
 ├── controllers/               # Entrada HTTP (MVP + legado de tarefas)
 ├── routes/                    # AuthRoutes (públicas), ApiRoutes (autenticadas)
-├── models/                    # Entidade legada Tarefa
 ├── db/
-│   ├── database.js            # Pool MySQL (env: DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME)
-│   ├── schema.sql             # usuarios, psicologos, vinculos, atividades
+│   ├── jsonStore.js           # Persistência JSON (data/*.json, atomicamente)
 │   └── seed.js                # Contas e rotinas de demonstração
+├── data/                      # Dados locais do MVP (criados em runtime, fora do git)
 ├── utils/                     # ApiError, wrapper de handlers
 └── frontend/                  # React + Vite + TypeScript
 ```
 
 ## Executando
 
-```bash
-# 1. Banco
-mysql -u root < db/schema.sql
+Não é necessário MySQL nem configuração de banco: a persistência é JSON.
 
-# 2. Backend (porta 3000)
+```bash
+# 1. Backend (porta 3000) — serve a API e o frontend compilado
 npm install
 npm run dev            # ou: npm start
 
-# 3. Seed de demonstração (opcional)
-npm run db:seed
+# 2. Seed de demonstração (opcional)
+npm run db:seed        # idempotente
+npm run db:reset       # apaga data/ e semeia do zero
 
-# 4. Frontend (porta 5173)
+# 3. Frontend em desenvolvimento (porta 5173, proxy /api → 3000)
 cd frontend && npm install && npm run dev
 ```
 
-Variáveis de ambiente do backend: `PORT`, `JWT_SECRET`, `DB_HOST`,
-`DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`.
+Variáveis de ambiente: `PORT`, `JWT_SECRET`.
 
 ## Conta de demonstração
 

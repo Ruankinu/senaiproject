@@ -1,20 +1,19 @@
 {
   "name": "rithmo-api",
   "version": "1.0.0",
-  "description": "API RITHMO — gerenciador de tarefas (Node.js + Express + MySQL)",
+  "description": "API RITHMO — rotina, consistência e acompanhamento (Node.js + Express + persistência JSON)",
   "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "db:schema": "mysql -u root < db/schema.sql",
-    "db:seed": "node db/seed.js"
+    "db:seed": "node db/seed.js",
+    "db:reset": "node db/seed.js --reset"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "mysql2": "^3.11.5",
-    "jsonwebtoken": "^9.0.2",
-    "bcryptjs": "^2.4.3"
+    "jsonwebtoken": "^9.0.2"
   }
 }
