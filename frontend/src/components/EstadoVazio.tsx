@@ -15,8 +15,8 @@ export function EstadoVazio({ onCriar }: EstadoVazioProps) {
       </span>
       <h2>Sua lista está limpa.</h2>
       <p>
-        Crie sua primeira tarefa para começar a organizar seu ritmo — com
-        prazo e prioridade, tudo entra no lugar.
+        Crie sua primeira tarefa com prazo e prioridade e comece a organizar
+        seu ritmo.
       </p>
       <Botao onClick={onCriar}>Nova tarefa</Botao>
     </div>

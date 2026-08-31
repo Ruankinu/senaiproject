@@ -1,5 +1,4 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Icone } from './Icone';
 
 interface DialogoProps {
   aberto: boolean;
@@ -36,11 +35,7 @@ export function Dialogo({ aberto, onFechar, rotulo, children }: DialogoProps) {
 
       const focaveis = Array.from(
         painel.current.querySelectorAll<HTMLElement>(FOCUSAVEIS),
-      ).filter(
-        (el) =>
-          !el.hasAttribute('disabled') &&
-          !el.closest('.dialogo__fechar'),
-      );
+      ).filter((el) => !el.hasAttribute('disabled'));
 
       if (focaveis.length === 0) return;
 
@@ -87,14 +82,6 @@ export function Dialogo({ aberto, onFechar, rotulo, children }: DialogoProps) {
         aria-modal="true"
         aria-labelledby={rotulo}
       >
-        <button
-          type="button"
-          className="btn btn--icone dialogo__fechar"
-          aria-label="Fechar"
-          onClick={onFechar}
-        >
-          <Icone nome="x" tamanho={14} />
-        </button>
         {children}
       </div>
     </div>

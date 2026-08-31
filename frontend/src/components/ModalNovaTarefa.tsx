@@ -40,9 +40,6 @@ export function ModalNovaTarefa({
   return (
     <Dialogo aberto={aberto} onFechar={onFechar} rotulo="titulo-nova-tarefa">
       <DialogoTitulo id="titulo-nova-tarefa">Nova tarefa</DialogoTitulo>
-      <p className="dialogo__texto">
-        Título, descrição e prazo são suficientes para começar.
-      </p>
       <FormularioTarefa
         rotuloEnvio="Adicionar tarefa"
         enviando={enviando}

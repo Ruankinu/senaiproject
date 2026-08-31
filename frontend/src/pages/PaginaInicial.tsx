@@ -44,7 +44,6 @@ export function PaginaInicial() {
   return (
     <div className="container">
       <Cabecalho onNovaTarefa={() => setModalAberta(true)} />
-      <div className="regua" aria-hidden="true" />
 
       <main className="pagina">
         <h1 className="titulo-pagina">Tarefas</h1>

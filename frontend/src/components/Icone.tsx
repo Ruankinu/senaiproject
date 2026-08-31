@@ -12,11 +12,7 @@ export function Icone({ nome, tamanho = 16, className }: IconeProps) {
   const caminhos: Record<string, JSX.Element> = {
     plus: <path d="M8 3.5v9M3.5 8h9" />,
     check: <path d="M3.5 8.5l3 3 6-7" />,
-    pencil: (
-      <>
-        <path d="M11.3 2.9l1.8 1.8M3 13l.6-2.5 7.4-7.4a1.27 1.27 0 011.8 0l.1.1a1.27 1.27 0 010 1.8L5.5 12.4 3 13z" />
-      </>
-    ),
+    pencil: <path d="M3 13h4M3 13l.5-2.4 6.8-6.8 1.9 1.9-6.8 6.8L3 13z" />,
     trash: (
       <>
         <path d="M2.5 4.5h11M6.5 4.5V3a1 1 0 011-1h1a1 1 0 011 1v1.5M4.5 4.5l.6 8.2a1.5 1.5 0 001.5 1.3h2.8a1.5 1.5 0 001.5-1.3l.6-8.2M6.5 7.5v3.5M9.5 7.5v3.5" />

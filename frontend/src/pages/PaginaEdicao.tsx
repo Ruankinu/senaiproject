@@ -69,17 +69,15 @@ export function PaginaEdicao() {
               </p>
             </div>
 
-            <div className="painel-form">
-              <FormularioTarefa
-                inicial={tarefa}
-                rotuloEnvio="Salvar alterações"
-                enviando={enviando}
-                erro={erroForm}
-                incluirStatus
-                onEnviar={aoSalvar}
-                onCancelar={() => navigate('/')}
-              />
-            </div>
+            <FormularioTarefa
+              inicial={tarefa}
+              rotuloEnvio="Salvar alterações"
+              enviando={enviando}
+              erro={erroForm}
+              incluirStatus
+              onEnviar={aoSalvar}
+              onCancelar={() => navigate('/')}
+            />
           </>
         )}
       </main>
