@@ -13,7 +13,7 @@ import * as authLib from '../lib/auth';
 interface ContextoAuth {
   usuario: Usuario | null;
   carregando: boolean;
-  entrar: (email: string, senha: string) => Promise<Usuario>;
+  entrar: (email: string, senha: string) => Promise<Usuario | null>;
   registrar: (dados: {
     nome: string;
     email: string;
@@ -36,48 +36,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    let ativo = true;
-    let timer: number | undefined;
-
-    /**
-     * Boot com retry: sem token → login imediato; /me 401 → login com token
-     * limpo; falha transitória (rede/5xx) → continua em "carregando" e tenta
-     * de novo, em vez de tratar "ainda não verificado" como "não autenticado"
-     * e expulsar um usuário com sessão válida para o login.
-     */
-    async function tentarRestaurar(tentativa: number) {
-      try {
-        const sessao = await authLib.obterSessao();
-        if (!ativo) return;
-        setUsuario(sessao);
-        setCarregando(false);
-      } catch {
-        if (!ativo) return;
-        const atraso =
-          tentativa < 3 ? tentativa * 1200 + 1200 : 8000;
-        timer = window.setTimeout(() => {
-          void tentarRestaurar(tentativa + 1);
-        }, atraso);
-      }
-    }
-
-    void tentarRestaurar(1);
+    // Protótipo: a sessão vem do storage local — sem rede, sem /me.
+    setUsuario(authLib.obterSessao());
+    setCarregando(false);
 
     const aoExpirar = () => {
       setUsuario(null);
       setCarregando(false);
     };
     window.addEventListener('rithmo:401', aoExpirar);
-    return () => {
-      ativo = false;
-      if (timer !== undefined) window.clearTimeout(timer);
-      window.removeEventListener('rithmo:401', aoExpirar);
-    };
+    return () => window.removeEventListener('rithmo:401', aoExpirar);
   }, []);
 
   const entrar = useCallback(async (email: string, senha: string) => {
     const sessao = await authLib.entrar(email, senha);
-    setUsuario(sessao);
+    if (sessao) setUsuario(sessao);
     return sessao;
   }, []);
 

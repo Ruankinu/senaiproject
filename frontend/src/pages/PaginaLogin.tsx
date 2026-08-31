@@ -29,6 +29,11 @@ export function PaginaLogin() {
     setErro(null);
     try {
       const usuario = await entrar(email.trim(), senha);
+      if (!usuario) {
+        // Protótipo: verificação local — sem request, sem 401.
+        setErro('E-mail ou senha incorretos.');
+        return;
+      }
       navigate(usuario.perfil === 'psicologo' ? '/psicologo' : '/', {
         replace: true,
       });
@@ -58,9 +63,9 @@ export function PaginaLogin() {
             psicólogo, no mesmo lugar.
           </p>
           <p className="auth__demo">
-            Ambiente de demonstração: paciente <code>ana@rithmo.app</code> ·
-            psicóloga <code>psicologa@rithmo.app</code> (senha{' '}
-            <code>123456</code>)
+            Ambiente de demonstração: pacientes <code>ana@rithmo.app</code> e{' '}
+            <code>lucas@rithmo.app</code> · psicóloga{' '}
+            <code>psicologa@rithmo.app</code> (senha <code>123456</code>)
           </p>
         </div>
       </aside>

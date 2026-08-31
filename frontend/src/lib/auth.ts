@@ -1,25 +1,28 @@
-import { api, ApiError, limparToken, obterToken, salvarToken } from './api';
+import { api } from './api';
+import { autenticarContaDemo, registrarContaDemo } from './demo';
+import {
+  limparUsuarioSessao,
+  obterUsuarioSessao,
+  salvarUsuarioSessao,
+} from './sessao';
 import type { Perfil, Usuario } from '../types';
 
-interface RespostaAuth {
-  token: string;
-  usuario: Usuario;
-}
-
 /**
- * O login/registro retornam o usuário básico; o perfil completo (codigo do
- * psicólogo, vínculo do paciente) só vem de /me. Buscamos /me após autenticar
- * para que a sessão já comece com todos os dados do perfil.
+ * Autenticação de PROTÓTIPO.
+ * O login verifica e-mail + senha LOCALMENTE (contas demo embutidas + contas
+ * criadas no navegador) e salva apenas os dados do usuário na sessão.
+ * Não há JWT, bcrypt no fluxo, Bearer token nem consulta a /me.
  */
-async function comPerfilCompleto(resposta: RespostaAuth): Promise<Usuario> {
-  salvarToken(resposta.token);
-  const perfil = await api.get<{ usuario: Usuario }>('/me');
-  return perfil.usuario;
-}
 
-export async function entrar(email: string, senha: string): Promise<Usuario> {
-  const resposta = await api.post<RespostaAuth>('/auth/login', { email, senha });
-  return comPerfilCompleto(resposta);
+export async function entrar(
+  email: string,
+  senha: string,
+): Promise<Usuario | null> {
+  const usuario = await autenticarContaDemo(email, senha);
+  if (!usuario) return null;
+
+  salvarUsuarioSessao(usuario);
+  return usuario;
 }
 
 export async function registrar(dados: {
@@ -28,36 +31,21 @@ export async function registrar(dados: {
   senha: string;
   perfil: Perfil;
 }): Promise<Usuario> {
-  const resposta = await api.post<RespostaAuth>('/auth/registro', dados);
-  return comPerfilCompleto(resposta);
+  // Persiste a conta demo no JSON do servidor (dados reais do protótipo);
+  // o token devolvido é ignorado — a entrada é controlada pela sessão local.
+  const resposta = await api.post<{ usuario: Usuario }>('/auth/registro', dados);
+  const usuario = resposta.usuario;
+
+  await registrarContaDemo(usuario, dados.senha);
+  salvarUsuarioSessao(usuario);
+  return usuario;
 }
 
-/**
- * Restaura a sessão no boot.
- *
- * Regra de verdade (nunca tratar "ainda não verificado" como
- * "não autenticado"):
- *  - sem token → null (usuário vai para o login, sem chamada de rede);
- *  - /me 401  → token real é inválido/expirado: limpa e retorna null;
- *  - /me 200  → usuário autenticado;
- *  - falha de rede/5xx → LANÇA. Quem chama (AuthProvider) faz retry com
- *    backoff e mantém o estado "carregando" — a sessão válida não é
- *    descartada por um pico de instabilidade.
- */
-export async function obterSessao(): Promise<Usuario | null> {
-  if (!obterToken()) return null;
-  try {
-    const resposta = await api.get<{ usuario: Usuario }>('/me');
-    return resposta.usuario;
-  } catch (erro) {
-    if (erro instanceof ApiError && erro.status === 401) {
-      limparToken();
-      return null;
-    }
-    throw erro;
-  }
+/** Restaura a sessão do protótipo direto do storage — sem rede. */
+export function obterSessao(): Usuario | null {
+  return obterUsuarioSessao();
 }
 
 export function sair(): void {
-  limparToken();
+  limparUsuarioSessao();
 }

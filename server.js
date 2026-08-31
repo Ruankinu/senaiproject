@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import AuthRoutes from './routes/AuthRoutes.js';
 import ApiRoutes from './routes/ApiRoutes.js';
 import Routes from './routes/Routes.js';
-import { requireAuth } from './middleware/auth.js';
+import { usuarioDemonstracao } from './middleware/auth.js';
 import { iniciar } from './db/jsonStore.js';
 
 const app = express();
@@ -24,9 +24,9 @@ app.use('/api', (req, res, next) => {
     next();
 });
 
-// API do MVP (autenticada)
+// API do MVP (protótipo: identidade de demonstração, sem JWT no fluxo)
 app.use('/api/auth', AuthRoutes);
-app.use('/api', requireAuth, ApiRoutes);
+app.use('/api', usuarioDemonstracao, ApiRoutes);
 
 // Frontend compilado servido na MESMA origem (porta 3000): o preview abre o
 // aplicativo por um único endereço — app E API juntos, sem "card errado".

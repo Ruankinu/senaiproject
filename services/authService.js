@@ -21,12 +21,20 @@ function gerarCodigo() {
 }
 
 function usuarioPublico(usuario) {
-    return {
+    const publico = {
         id: usuario.id,
         nome: usuario.nome,
         email: usuario.email,
         perfil: usuario.perfil
     };
+    if (usuario.perfil === 'psicologo') {
+        const [psicologo] = buscarOnde(
+            'psicologos',
+            (p) => p.usuarioId === usuario.id
+        );
+        publico.codigo = psicologo?.codigo ?? null;
+    }
+    return publico;
 }
 
 export async function registrar({ nome, email, senha, perfil }) {
