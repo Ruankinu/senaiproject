@@ -6,13 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 import AuthRoutes from './routes/AuthRoutes.js';
 import ApiRoutes from './routes/ApiRoutes.js';
-import Routes from './routes/Routes.js';
 import { usuarioDemonstracao } from './middleware/auth.js';
 import { iniciar } from './db/jsonStore.js';
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DIST = path.join(__dirname, 'frontend', 'dist');
+// O frontend compilado fica em frontend/ (na raiz do repositório).
+const DIST = path.join(__dirname, '..', 'frontend', 'dist');
 
 app.use(express.json());
 app.use(cors());
@@ -69,13 +69,10 @@ if (fs.existsSync(INDEX)) {
     });
 }
 
-// Rotas legadas de tarefas (mantidas por compatibilidade)
-app.use('/', Routes);
-
-const PORTA = Number(process.env.PORT || 3000);
-
 // Persistência JSON: carrega (ou cria) data/*.json antes de aceitar conexões.
 await iniciar();
+
+const PORTA = Number(process.env.PORT || 3000);
 
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`);

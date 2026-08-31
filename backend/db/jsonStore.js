@@ -12,7 +12,6 @@
  *   vinculos   — { id, pacienteId, psicologoId, criadoEm }
  *   atividades — { id, usuarioId, titulo, descricao, prazo, horario,
  *                  prioridade, complexidade, status, concluidaEm, criadoEm }
- *   tarefas    — rotas legadas (compatibilidade)
  *
  * IDs são estáveis e nunca reutilizados: novo id = maior id existente + 1.
  */
@@ -24,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIR_DADOS = path.join(__dirname, '..', 'data');
 
-const COLECOES = ['usuarios', 'psicologos', 'vinculos', 'atividades', 'tarefas'];
+const COLECOES = ['usuarios', 'psicologos', 'vinculos', 'atividades'];
 
 // Estado em memória: coleção -> array de registros.
 const estado = new Map();
@@ -142,14 +141,6 @@ export function removerOnde(nome, predicado) {
     });
 }
 
-/** Substitui a coleção inteira (usado por seeds/reset). */
-export function substituirColecao(nome, dados) {
-    return comFila(nome, async () => {
-        estado.set(nome, copiar(dados));
-        await persistir(nome);
-    });
-}
-
 /** Apaga todos os dados (reset). */
 export async function limparTudo() {
     await Promise.all(
@@ -164,5 +155,3 @@ export async function limparTudo() {
 export function colecaoVazia(nome) {
     return (estado.get(nome) ?? []).length === 0;
 }
-
-export { DIR_DADOS };

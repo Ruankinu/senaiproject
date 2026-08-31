@@ -7,8 +7,8 @@ import {
 } from '../db/jsonStore.js';
 import { ApiError } from '../utils/ApiError.js';
 
-export const PRIORIDADES = ['Baixa', 'Média', 'Alta'];
-export const COMPLEXIDADES = ['Fácil', 'Moderada', 'Intensa'];
+const PRIORIDADES = ['Baixa', 'Média', 'Alta'];
+const COMPLEXIDADES = ['Fácil', 'Moderada', 'Intensa'];
 
 function validarDados(dados, { parcial = false } = {}) {
     const resultado = {};
