@@ -1,0 +1,17 @@
+{
+  "name": "rithmo-api",
+  "version": "1.0.0",
+  "description": "API RITHMO — gerenciador de tarefas (Node.js + Express + MySQL)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:schema": "mysql -u root < db/schema.sql"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  }
+}

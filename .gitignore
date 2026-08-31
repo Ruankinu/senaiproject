@@ -1,0 +1,13 @@
+# Dependências
+node_modules/
+
+# Builds
+frontend/dist/
+
+# Bancos locais de preview
+*.sqlite3
+preview-db/
+
+# Ambiente
+.env
+.env.local
