@@ -1,21 +1,27 @@
 /* ==========================================================================
-   RITHMO — Sistema visual (v2)
+   RITHMO — Sistema visual (v3)
    Direção: editorial + produtividade. Papel quente, tinta, um único acento
    (terracota). A identidade vem de tipografia (Fraunces + Inter), do tempo
    (timeline da rotina) e do espaço — nunca de efeitos decorativos.
+
+   Regras desta versão:
+   - hierarquia > decoração: linhas e divisores no lugar de cards;
+   - poucos raios, poucas sombras, zero gradiente/glow;
+   - a rotina é o protagonista da Home do paciente;
+   - a lista de pacientes é o protagonista da Home do psicólogo.
    ========================================================================== */
 
 :root {
   /* Cor */
   --papel: #f3f0e8;
   --superficie: #faf8f2;
-  --superficie-2: #ebe7dc;
+  --superficie-2: #ebe6da;
   --tinta: #17140f;
   --tinta-hover: #2a261f;
   --tinta-2: #4c473d;
   --tinta-3: #6f695c;
   --linha: #ddd7c9;
-  --linha-forte: #c6bea9;
+  --linha-forte: #c7bfab;
   --acento: #96382b;
   --acento-suave: #e9ddd4;
   --perigo: #a3392c;
@@ -29,16 +35,35 @@
   --fonte-ui: 'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
   --fonte-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
 
-  /* Escala */
-  --t-14: 14px;
-  --t-13: 13px;
-  --t-12: 12px;
+  /* Escala tipográfica (apenas estes degraus) */
   --t-11: 11px;
+  --t-12: 12px;
+  --t-13: 13px;
+  --t-14: 14px;
+  --t-15: 15px;
+  --t-16: 16px;
+  --t-18: 18px;
+  --t-22: 22px;
+  --t-28: 28px;
+  --t-36: 36px;
 
-  /* Estrutura */
-  --radius: 3px;
-  --radius-painel: 6px;
-  --cols-rotina: 34px 64px minmax(0, 1fr) auto;
+  /* Ritmo de espaço (multiple de 4, com 6 como exceção pontual) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 28px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-14: 56px;
+
+  /* Estrutura: poucos raios, quase sem sombras */
+  --radius: 2px;
+  --radius-painel: 4px;
+  --cols-rotina: 30px 72px minmax(0, 1fr) auto;
 }
 
 *,
@@ -87,15 +112,15 @@ code {
 .container {
   max-width: 880px;
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 clamp(20px, 4vw, 28px);
 }
 
 .cabecalho {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 26px 0 18px;
+  gap: var(--s-4);
+  padding: 22px 0 var(--s-4);
   border-bottom: 1px solid var(--linha);
 }
 
@@ -124,11 +149,11 @@ code {
 .cabecalho__direita {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--s-4);
 }
 
 .cabecalho__usuario {
-  font-size: 13px;
+  font-size: var(--t-13);
   font-weight: 600;
   color: var(--tinta-2);
 }
@@ -137,7 +162,7 @@ code {
   display: inline-flex;
   align-items: baseline;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--t-12);
   font-weight: 650;
   color: var(--tinta-2);
   font-variant-numeric: tabular-nums;
@@ -152,20 +177,20 @@ code {
 }
 
 .pagina {
-  padding: 38px 0 110px;
+  padding: 40px 0 120px;
 }
 
 .pagina__cabecalho {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
+  gap: var(--s-5);
   flex-wrap: wrap;
 }
 
 .rotulo-data {
-  margin: 0 0 6px;
-  font-size: 11px;
+  margin: 0 0 8px;
+  font-size: var(--t-11);
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -175,32 +200,40 @@ code {
 .titulo-pagina {
   margin: 0;
   font-family: var(--fonte-display);
-  font-size: 36px;
-  font-weight: 520;
+  font-size: clamp(30px, 4.4vw, 38px);
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.08;
+  text-wrap: balance;
 }
 
 .subtitulo {
   margin: 10px 0 0;
-  font-size: 13.5px;
+  font-size: var(--t-14);
   color: var(--tinta-2);
 }
 
+/* Progresso do dia: uma barra discreta + percentual tabular à direita */
 .progresso-linha {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-top: 22px;
-  max-width: 480px;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+  max-width: 520px;
+}
+
+.progresso-linha__trilho {
+  flex: 1;
+  height: 4px;
 }
 
 .progresso-linha__texto {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: var(--t-12);
+  font-weight: 650;
   color: var(--tinta-2);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 /* Trilho acessível reutilizável (componente Barra) */
@@ -220,29 +253,23 @@ code {
   transition: width 0.35s ease;
 }
 
-.progresso-linha__trilho {
-  flex: 1;
-  height: 3px;
-}
-
 .pagina__nav-dia {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 14px;
+  margin-top: var(--s-4);
 }
 
 .pagina__nav-dia .nav-dia__alvo {
   min-width: 210px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--t-13);
   font-weight: 600;
   color: var(--tinta);
-  font-variant-numeric: tabular-nums;
 }
 
 /* --------------------------------------------------------------------------
-   Botões
+   Botões — hierarquia: primário (tinta), fantasma (borda), perigo, ícone
    -------------------------------------------------------------------------- */
 
 .btn {
@@ -250,12 +277,12 @@ code {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 40px;
+  height: 42px;
   padding: 0 18px;
   border: 1px solid transparent;
   border-radius: var(--radius);
   font: inherit;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 650;
   letter-spacing: 0.01em;
   color: var(--papel);
@@ -307,8 +334,8 @@ code {
 }
 
 .btn--icone {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   background: transparent;
   color: var(--tinta-2);
@@ -346,16 +373,16 @@ code {
 
 .rotina {
   position: relative;
-  margin-top: 30px;
+  margin-top: var(--s-8);
   border-top: 1px solid var(--linha);
 }
 
 .rotina::before {
   content: '';
   position: absolute;
-  left: 16.5px;
-  top: 8px;
-  bottom: 26px;
+  left: 14.5px;
+  top: 10px;
+  bottom: 28px;
   width: 1px;
   background: var(--linha);
 }
@@ -365,8 +392,8 @@ code {
   display: grid;
   grid-template-columns: var(--cols-rotina);
   align-items: start;
-  gap: 6px 14px;
-  padding: 16px 6px 16px 0;
+  gap: 8px 16px;
+  padding: 18px 4px 18px 0;
   border-bottom: 1px solid var(--linha);
   transition: background-color 0.15s ease;
 }
@@ -380,11 +407,11 @@ code {
 .atividade__checkbox {
   appearance: none;
   -webkit-appearance: none;
-  width: 21px;
-  height: 21px;
+  width: 22px;
+  height: 22px;
   margin: 0;
   border: 1.5px solid var(--linha-forte);
-  border-radius: 3px;
+  border-radius: var(--radius);
   background: var(--papel);
   cursor: pointer;
   transition:
@@ -395,7 +422,7 @@ code {
 
 .atividade__checkbox:hover {
   border-color: var(--tinta-3);
-  transform: scale(1.06);
+  transform: scale(1.05);
 }
 
 .atividade__checkbox:checked {
@@ -436,8 +463,8 @@ code {
 }
 
 .atividade__tempo {
-  padding-top: 1px;
-  font-size: 12.5px;
+  padding-top: 2px;
+  font-size: 13px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
@@ -450,7 +477,7 @@ code {
 
 .atividade__titulo {
   margin: 0;
-  font-size: 15.5px;
+  font-size: var(--t-16);
   font-weight: 600;
   letter-spacing: -0.006em;
   line-height: 1.35;
@@ -459,8 +486,8 @@ code {
 }
 
 .atividade__descricao {
-  margin: 3px 0 0;
-  font-size: 13px;
+  margin: 4px 0 0;
+  font-size: var(--t-13);
   color: var(--tinta-2);
   max-width: 62ch;
 }
@@ -468,15 +495,15 @@ code {
 .atividade__meta {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 8px;
+  gap: var(--s-4);
+  margin-top: 10px;
 }
 
 .prioridade {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: var(--t-12);
   font-weight: 600;
   color: var(--tinta-2);
 }
@@ -563,12 +590,12 @@ code {
 }
 
 /* --------------------------------------------------------------------------
-   Consistência + conquistas
+   Seções — divisores horizontais, sem caixas
    -------------------------------------------------------------------------- */
 
 .secao {
-  margin-top: 54px;
-  padding-top: 28px;
+  margin-top: var(--s-14);
+  padding-top: var(--s-7);
   border-top: 1px solid var(--linha);
 }
 
@@ -576,77 +603,97 @@ code {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--s-4);
   flex-wrap: wrap;
 }
 
 .secao__titulo {
   margin: 0;
   font-family: var(--fonte-display);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 550;
   letter-spacing: -0.01em;
 }
 
 .secao__legenda {
-  margin: 4px 0 0;
-  font-size: 12.5px;
+  margin: 5px 0 0;
+  font-size: var(--t-13);
   color: var(--tinta-2);
+  max-width: 54ch;
+}
+
+/* --------------------------------------------------------------------------
+   Consistência — sóbria: uma linha de número + conquistas em linhas
+   -------------------------------------------------------------------------- */
+
+.consistencia__linha {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+  flex-wrap: wrap;
 }
 
 .consistencia__numero {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.consistencia__dias {
-  font-family: var(--fonte-display);
-  font-size: 40px;
-  font-weight: 520;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.consistencia__unidade {
-  font-size: 14px;
+  font-family: var(--fonte-ui);
+  font-size: var(--t-15);
   font-weight: 600;
   color: var(--tinta-2);
 }
 
+.consistencia__numero b {
+  font-family: var(--fonte-display);
+  font-size: 28px;
+  font-weight: 520;
+  letter-spacing: -0.01em;
+  color: var(--tinta);
+  font-variant-numeric: tabular-nums;
+  margin-right: 3px;
+}
+
 .consistencia__melhor {
-  font-size: 12px;
+  font-size: var(--t-12);
   color: var(--tinta-3);
 }
 
+/* Badges como sistema de linhas (não cards): uma faixa com divisores */
 .badges {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin: 24px 0 0;
+  gap: 0;
+  margin: var(--s-6) 0 0;
   padding: 0;
   list-style: none;
+  border-top: 1px solid var(--linha);
+  border-bottom: 1px solid var(--linha);
 }
 
 .badge {
   display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding: 14px;
-  border: 1px solid var(--linha);
-  border-radius: var(--radius-painel);
-  background: var(--superficie);
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 16px 0;
+  border-left: 1px solid var(--linha);
+}
+
+.badge:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.badge:last-child {
+  padding-right: 0;
 }
 
 .badge__marca {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  margin-top: 1px;
   border: 1px solid var(--linha-forte);
-  border-radius: 4px;
+  border-radius: var(--radius);
   color: var(--tinta-3);
   background: var(--papel);
 }
@@ -657,6 +704,13 @@ code {
   color: var(--papel);
 }
 
+.badge__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .badge__nome {
   font-size: 12.5px;
   font-weight: 650;
@@ -664,7 +718,7 @@ code {
 }
 
 .badge__progresso {
-  font-size: 11.5px;
+  font-size: var(--t-11);
   color: var(--tinta-3);
   font-variant-numeric: tabular-nums;
 }
@@ -675,25 +729,19 @@ code {
 }
 
 /* --------------------------------------------------------------------------
-   Vínculo (paciente) e código (psicólogo)
+   Vínculo (paciente) e código (psicólogo) — discretos, sem caixas
    -------------------------------------------------------------------------- */
 
 .vinculo {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-top: 18px;
-  padding: 16px 18px;
-  border: 1px solid var(--linha);
-  border-radius: var(--radius-painel);
-  background: var(--superficie);
+  align-items: baseline;
+  gap: 12px;
+  margin-top: var(--s-5);
+  flex-wrap: wrap;
 }
 
 .vinculo__rotulo {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 11px;
+  font-size: var(--t-11);
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -701,60 +749,83 @@ code {
 }
 
 .vinculo__pessoa {
-  margin: 0;
-  font-size: 14px;
+  font-size: var(--t-14);
   font-weight: 650;
   color: var(--tinta);
 }
 
 .vinculo__meta {
-  margin: 1px 0 0;
-  font-size: 12.5px;
+  font-size: var(--t-13);
   color: var(--tinta-3);
+}
+
+.vinculo-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-4);
+  margin-top: var(--s-5);
+  max-width: 480px;
+}
+
+.vinculo-form__campo {
+  flex: 1;
+  min-width: 0;
+}
+
+.codigo-secao {
+  margin-top: var(--s-8);
+  padding-top: 0;
+  border-top: 0;
 }
 
 .codigo {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-top: 18px;
-  padding: 18px 20px;
-  border: 1px dashed var(--linha-forte);
-  border-radius: var(--radius-painel);
-  background: var(--superficie);
+  gap: var(--s-4);
+  padding: 16px 0;
+  border-top: 1px solid var(--linha);
+  border-bottom: 1px solid var(--linha);
+  flex-wrap: wrap;
+}
+
+.codigo__info {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .codigo__valor {
   margin: 0;
   font-family: var(--fonte-display);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   font-variant-numeric: tabular-nums;
 }
 
 .codigo__descricao {
-  margin: 4px 0 0;
-  font-size: 12.5px;
+  margin: 0;
+  font-size: var(--t-12);
   color: var(--tinta-3);
 }
 
 /* --------------------------------------------------------------------------
-   Pacientes (psicólogo)
+   Pacientes (psicólogo) — lista escaneável
    -------------------------------------------------------------------------- */
 
 .pacientes {
-  margin-top: 30px;
+  margin-top: var(--s-8);
   border-top: 1px solid var(--linha);
 }
 
 .paciente {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px 110px 44px;
+  grid-template-columns: minmax(0, 1fr) 190px 130px auto;
   align-items: center;
-  gap: 16px;
-  padding: 16px 6px 16px 2px;
+  gap: var(--s-4);
+  padding: 18px 4px 18px 0;
   border-bottom: 1px solid var(--linha);
   transition: background-color 0.15s ease;
 }
@@ -765,28 +836,29 @@ code {
 
 .paciente__nome {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--t-16);
   font-weight: 600;
+  letter-spacing: -0.006em;
   color: var(--tinta);
 }
 
 .paciente__email {
   margin: 2px 0 0;
-  font-size: 12.5px;
+  font-size: var(--t-12);
   color: var(--tinta-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.paciente__progresso {
+.paciente__hoje {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .paciente__progresso-numero {
-  font-size: 12.5px;
+  font-size: var(--t-12);
   font-weight: 650;
   color: var(--tinta-2);
   white-space: nowrap;
@@ -796,22 +868,14 @@ code {
 .paciente__progresso-trilho {
   flex: 1;
   height: 3px;
+  min-width: 0;
 }
 
 .paciente__consistencia {
-  font-size: 13px;
+  font-size: var(--t-13);
   font-weight: 650;
   color: var(--tinta-2);
   font-variant-numeric: tabular-nums;
-}
-
-.paciente__consistencia--alta {
-  color: var(--tinta);
-}
-
-.paciente__acao {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .paciente__atrasadas {
@@ -819,58 +883,74 @@ code {
   font-weight: 650;
 }
 
+.paciente__acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: end;
+  font-size: var(--t-13);
+  font-weight: 650;
+  color: var(--tinta-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.paciente__acao:hover {
+  color: var(--tinta);
+}
+
+.paciente__acao svg {
+  transition: transform 0.15s ease;
+}
+
+.paciente__acao:hover svg {
+  transform: translateX(2px);
+}
+
 /* --------------------------------------------------------------------------
-   Resumo do paciente (visão do psicólogo)
+   Página do paciente (psicólogo): resumo em linha, sem painel clínico
    -------------------------------------------------------------------------- */
 
-.resumo-paciente {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin-top: 30px;
+.resumo-linha {
+  display: flex;
+  align-items: baseline;
+  gap: 8px 32px;
+  flex-wrap: wrap;
+  margin-top: var(--s-6);
+  padding: var(--s-4) 0;
   border-top: 1px solid var(--linha);
   border-bottom: 1px solid var(--linha);
 }
 
-.resumo-paciente__item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 18px 20px 18px 0;
-  border-left: 1px solid var(--linha);
+.resumo-linha__item {
+  font-size: var(--t-13);
+  color: var(--tinta-2);
 }
 
-.resumo-paciente__item:first-child {
-  border-left: 0;
-}
-
-.resumo-paciente__valor {
+.resumo-linha__item b {
   font-family: var(--fonte-display);
-  font-size: 24px;
+  font-size: var(--t-18);
   font-weight: 520;
+  color: var(--tinta);
   font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.resumo-paciente__rotulo {
-  font-size: 11.5px;
-  color: var(--tinta-3);
+  margin-right: 5px;
 }
 
 .historico {
-  margin-top: 16px;
+  margin-top: var(--s-4);
 }
 
 .historico__dia {
   display: grid;
   grid-template-columns: 130px minmax(0, 1fr) 46px;
   align-items: center;
-  gap: 16px;
-  padding: 11px 0;
+  gap: var(--s-4);
+  padding: 12px 0;
   border-bottom: 1px solid var(--linha);
 }
 
 .historico__rotulo {
-  font-size: 12.5px;
+  font-size: var(--t-13);
   font-weight: 550;
   color: var(--tinta-2);
   text-transform: capitalize;
@@ -882,7 +962,7 @@ code {
 }
 
 .historico__valor {
-  font-size: 12.5px;
+  font-size: var(--t-13);
   font-weight: 600;
   color: var(--tinta-2);
   text-align: right;
@@ -896,15 +976,15 @@ code {
 .auth {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(340px, 44%) 1fr;
+  grid-template-columns: minmax(340px, 42%) 1fr;
 }
 
 .auth__marca {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 48px;
-  padding: 52px 56px 44px;
+  gap: var(--s-12);
+  padding: clamp(28px, 4vw, 52px) clamp(28px, 4vw, 56px) 40px;
   border-right: 1px solid var(--linha);
   background: var(--superficie);
 }
@@ -912,12 +992,13 @@ code {
 .auth__frase {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   font-family: var(--fonte-display);
-  font-size: clamp(34px, 4.2vw, 52px);
-  font-weight: 480;
+  font-size: clamp(32px, 4.2vw, 50px);
+  font-weight: 470;
   letter-spacing: -0.025em;
-  line-height: 1.05;
+  line-height: 1.06;
+  text-wrap: balance;
 }
 
 .auth__frase em {
@@ -928,15 +1009,15 @@ code {
 .auth__nota {
   margin: 0;
   max-width: 34ch;
-  font-size: 13px;
-  line-height: 1.7;
+  font-size: var(--t-13);
+  line-height: 1.75;
   color: var(--tinta-2);
 }
 
 .auth__demo {
-  margin: 18px 0 0;
-  font-size: 11.5px;
-  line-height: 1.8;
+  margin: var(--s-5) 0 0;
+  font-size: var(--t-11);
+  line-height: 1.85;
   color: var(--tinta-3);
 }
 
@@ -944,30 +1025,30 @@ code {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 56px clamp(24px, 6vw, 88px);
+  padding: var(--s-14) clamp(24px, 6vw, 88px);
 }
 
 .auth__painel-interno {
-  width: min(380px, 100%);
+  width: min(400px, 100%);
 }
 
 .auth__titulo {
   margin: 0 0 6px;
   font-family: var(--fonte-display);
-  font-size: 28px;
+  font-size: var(--t-28);
   font-weight: 520;
   letter-spacing: -0.015em;
 }
 
 .auth__subtitulo {
-  margin: 0 0 34px;
-  font-size: 13px;
+  margin: 0 0 38px;
+  font-size: var(--t-13);
   color: var(--tinta-2);
 }
 
 .auth__rodape {
-  margin: 26px 0 0;
-  font-size: 13px;
+  margin: var(--s-6) 0 0;
+  font-size: var(--t-13);
   color: var(--tinta-2);
 }
 
@@ -977,10 +1058,25 @@ code {
   text-underline-offset: 3px;
 }
 
+/* Tela de verificação da sessão (flash curto no boot) */
+.auth__cartao {
+  width: min(320px, 100%);
+  padding: var(--s-6);
+  border: 1px solid var(--linha);
+  border-radius: var(--radius-painel);
+  background: var(--superficie);
+}
+
+.auth__cartao--carregando {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+}
+
 .campo__legenda {
   display: block;
-  margin: 0 0 12px;
-  font-size: 12px;
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-12);
   font-weight: 700;
   color: var(--tinta-2);
 }
@@ -989,18 +1085,18 @@ code {
 .perfil-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 30px;
+  gap: var(--s-3);
+  margin-bottom: var(--s-8);
 }
 
 .perfil-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px 16px;
+  gap: var(--s-4);
+  padding: var(--s-4);
   border: 1px solid var(--linha-forte);
-  border-radius: var(--radius-painel);
+  border-radius: var(--radius);
   background: var(--papel);
   font: inherit;
   text-align: left;
@@ -1008,13 +1104,11 @@ code {
   cursor: pointer;
   transition:
     border-color 0.15s ease,
-    background-color 0.15s ease,
-    transform 0.15s ease;
+    background-color 0.15s ease;
 }
 
 .perfil-card:hover {
   border-color: var(--tinta-3);
-  transform: translateY(-1px);
 }
 
 .perfil-card--ativo {
@@ -1024,8 +1118,8 @@ code {
 
 .perfil-card__marca {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 13px;
+  right: 13px;
   width: 8px;
   height: 8px;
   border-radius: 1.5px;
@@ -1044,24 +1138,24 @@ code {
 
 .perfil-card__texto strong {
   font-family: var(--fonte-display);
-  font-size: 17px;
+  font-size: var(--t-16);
   font-weight: 560;
 }
 
 .perfil-card__texto small {
-  font-size: 12.5px;
+  font-size: var(--t-12);
   line-height: 1.5;
   color: var(--tinta-3);
 }
 
 /* --------------------------------------------------------------------------
-   Formulários
+   Formulários — inputs padronizados
    -------------------------------------------------------------------------- */
 
 .formulario {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--s-5);
 }
 
 .campo {
@@ -1073,35 +1167,35 @@ code {
 .campo > label,
 .campo > legend {
   display: block;
-  margin-bottom: 8px;
-  font-size: 12px;
+  margin-bottom: var(--s-2);
+  font-size: var(--t-12);
   font-weight: 700;
   color: var(--tinta-2);
 }
 
 .campo-erro {
   margin: 7px 0 0;
-  font-size: 12px;
+  font-size: var(--t-12);
   color: var(--perigo);
 }
 
 .campo-ajuda {
   margin: 7px 0 0;
-  font-size: 12px;
+  font-size: var(--t-12);
   color: var(--tinta-3);
 }
 
 /* Inputs com régua inferior (linguagem editorial) */
 .campo--regua input {
   width: 100%;
-  min-height: 44px;
+  min-height: 48px;
   padding: 6px 2px;
   border: 0;
   border-bottom: 1px solid var(--linha-forte);
   border-radius: 0;
   background: transparent;
   font: inherit;
-  font-size: 15px;
+  font-size: var(--t-15);
   color: var(--tinta);
   transition: border-color 0.15s ease;
 }
@@ -1124,13 +1218,13 @@ code {
 .formulario input[type='time'],
 .formulario textarea {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 12px;
   border: 1px solid var(--linha-forte);
   border-radius: var(--radius);
   background: #fff;
   font: inherit;
-  font-size: 14px;
+  font-size: var(--t-14);
   color: var(--tinta);
   transition:
     border-color 0.15s ease,
@@ -1157,7 +1251,7 @@ code {
 
 .formulario__linha {
   display: grid;
-  gap: 16px;
+  gap: var(--s-4);
 }
 
 .formulario__linha.dois {
@@ -1191,7 +1285,7 @@ code {
   justify-content: center;
   gap: 8px;
   padding: 11px 8px;
-  font-size: 13px;
+  font-size: var(--t-13);
   font-weight: 600;
   color: var(--tinta-2);
   cursor: pointer;
@@ -1239,7 +1333,7 @@ code {
   border: 1px solid var(--perigo-linha);
   border-radius: var(--radius);
   background: var(--perigo-fundo);
-  font-size: 13px;
+  font-size: var(--t-13);
   color: var(--perigo);
 }
 
@@ -1270,8 +1364,8 @@ code {
 
 .dialogo__painel {
   position: relative;
-  width: min(500px, 100%);
-  padding: 26px 26px 28px;
+  width: min(520px, 100%);
+  padding: 28px;
   background: var(--superficie);
   border: 1px solid var(--linha);
   border-radius: var(--radius-painel);
@@ -1280,7 +1374,7 @@ code {
 }
 
 .dialogo__painel .formulario {
-  margin-top: 22px;
+  margin-top: var(--s-6);
   max-height: min(62vh, 560px);
   overflow-y: auto;
   padding-right: 4px;
@@ -1289,14 +1383,14 @@ code {
 .dialogo__titulo {
   margin: 0;
   font-family: var(--fonte-display);
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 550;
   letter-spacing: -0.01em;
 }
 
 .dialogo__texto {
   margin: 8px 0 0;
-  font-size: 13.5px;
+  font-size: var(--t-13);
   line-height: 1.6;
   color: var(--tinta-2);
 }
@@ -1310,7 +1404,7 @@ code {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 26px;
+  margin-top: var(--s-6);
 }
 
 @keyframes aparecer {
@@ -1346,7 +1440,7 @@ code {
   padding: 10px 16px;
   background: var(--tinta);
   color: var(--papel);
-  font-size: 13px;
+  font-size: var(--t-13);
   font-weight: 600;
   border-radius: var(--radius);
   box-shadow: 0 10px 26px rgba(20, 16, 8, 0.14);
@@ -1373,7 +1467,7 @@ code {
   flex-direction: column;
   align-items: center;
   max-width: 420px;
-  margin: 84px auto 0;
+  margin: 72px auto 0;
   text-align: center;
 }
 
@@ -1381,7 +1475,7 @@ code {
   position: relative;
   width: 84px;
   height: 14px;
-  margin-bottom: 26px;
+  margin-bottom: var(--s-6);
   background-image: repeating-linear-gradient(
     to right,
     var(--linha-forte) 0 1px,
@@ -1407,14 +1501,14 @@ code {
 }
 
 .estado-vazio p {
-  margin: 0 0 28px;
-  font-size: 14px;
+  margin: 0 0 var(--s-7);
+  font-size: var(--t-14);
   line-height: 1.65;
   color: var(--tinta-2);
 }
 
 .erro-painel {
-  margin-top: 30px;
+  margin-top: var(--s-8);
   padding: 34px 26px;
   border: 1px solid var(--perigo-linha);
   border-radius: var(--radius-painel);
@@ -1424,35 +1518,35 @@ code {
 
 .erro-painel h2 {
   margin: 0 0 6px;
-  font-size: 16px;
+  font-size: var(--t-16);
   font-weight: 650;
 }
 
 .erro-painel p {
   margin: 0 0 18px;
-  font-size: 13.5px;
+  font-size: var(--t-13);
   color: var(--perigo);
 }
 
 .lista-esqueleto {
-  margin-top: 30px;
+  margin-top: var(--s-8);
   border-top: 1px solid var(--linha);
 }
 
 .esqueleto {
   display: grid;
   grid-template-columns: var(--cols-rotina);
-  gap: 14px;
+  gap: var(--s-4);
   align-items: start;
-  padding: 16px 6px 16px 0;
+  padding: 18px 4px 18px 0;
   border-bottom: 1px solid var(--linha);
 }
 
 .esqueleto__check {
-  width: 21px;
-  height: 21px;
-  margin-left: 7px;
-  border-radius: 3px;
+  width: 22px;
+  height: 22px;
+  margin-left: 4px;
+  border-radius: var(--radius);
   background: var(--superficie-2);
   animation: pulsar 1.8s ease-in-out infinite;
 }
@@ -1502,8 +1596,8 @@ code {
 .esqueleto-painel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 30px;
+  gap: var(--s-4);
+  margin-top: var(--s-8);
 }
 
 .esqueleto-painel--alto {
@@ -1521,14 +1615,14 @@ code {
 }
 
 .breadcrumb {
-  margin-bottom: 30px;
+  margin-bottom: var(--s-8);
 }
 
 .breadcrumb a {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--t-13);
   font-weight: 600;
   color: var(--tinta-2);
   text-decoration: none;
@@ -1543,28 +1637,44 @@ code {
    -------------------------------------------------------------------------- */
 
 @media (max-width: 900px) {
-  .container {
-    padding: 0 20px;
-  }
-
   .pagina {
-    padding: 30px 0 90px;
+    padding: 32px 0 96px;
   }
 
   .rotina::before {
-    left: 16px;
+    left: 14.5px;
   }
 
   .badges {
     grid-template-columns: repeat(3, 1fr);
+    row-gap: 0;
+  }
+
+  .badge {
+    border-left: 1px solid var(--linha);
+    border-top: 0;
+  }
+
+  .badge:nth-child(3n + 1) {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .badge:nth-child(3n + 2),
+  .badge:nth-child(3n) {
+    padding-left: 16px;
+  }
+
+  .badges .badge:nth-child(-n + 3) {
+    padding-top: 16px;
+  }
+
+  .badges .badge:nth-child(n + 4) {
+    border-top: 1px solid var(--linha);
   }
 
   .paciente {
-    grid-template-columns: minmax(0, 1fr) 120px 44px;
-  }
-
-  .paciente__consistencia--col {
-    display: none;
+    grid-template-columns: minmax(0, 1fr) 150px auto;
   }
 
   .paciente__consistencia {
@@ -1578,12 +1688,12 @@ code {
   .auth__marca {
     border-right: 0;
     border-bottom: 1px solid var(--linha);
-    padding: 30px 24px 26px;
-    gap: 26px;
+    padding: 26px 24px 24px;
+    gap: var(--s-6);
   }
 
   .auth__frase {
-    font-size: clamp(30px, 7vw, 42px);
+    font-size: clamp(28px, 7vw, 40px);
   }
 
   .auth__painel {
@@ -1591,18 +1701,24 @@ code {
     justify-content: flex-start;
   }
 
-  .auth__nota {
+  .auth__nota,
+  .auth__demo {
     display: none;
   }
 }
 
 @media (max-width: 640px) {
+  .pagina__cabecalho {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .titulo-pagina {
-    font-size: 29px;
+    font-size: 28px;
   }
 
   .cabecalho {
-    padding: 20px 0 16px;
+    padding: 18px 0 var(--s-4);
   }
 
   .cabecalho__usuario {
@@ -1610,7 +1726,7 @@ code {
   }
 
   .atividade {
-    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
     grid-template-areas:
       'check corpo acoes'
       'check tempo acoes';
@@ -1624,7 +1740,7 @@ code {
 
   .atividade__tempo {
     grid-area: tempo;
-    font-size: 12px;
+    font-size: var(--t-12);
   }
 
   .atividade__corpo {
@@ -1636,16 +1752,41 @@ code {
   }
 
   .atividade__acoes .btn--icone {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
   }
 
   .atividade__descricao {
     white-space: normal;
   }
 
+  /* Badges: linhas empilhadas no celular (nunca uma parede de cards) */
+  .badges {
+    grid-template-columns: 1fr;
+  }
+
+  .badge {
+    border-left: 0;
+    border-bottom: 1px solid var(--linha);
+    border-top: 0;
+    padding: 14px 0;
+  }
+
+  .badge:first-child {
+    padding-top: 16px;
+  }
+
+  .badge:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .badges .badge {
+    padding-left: 0;
+  }
+
   .esqueleto {
-    grid-template-columns: 34px minmax(0, 1fr) 90px;
+    grid-template-columns: 30px minmax(0, 1fr) 90px;
   }
 
   .esqueleto__horario {
@@ -1656,22 +1797,8 @@ code {
     display: none;
   }
 
-  .resumo-paciente {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .resumo-paciente__item {
-    padding: 14px 0;
-    border-left: 0;
-    border-top: 1px solid var(--linha);
-  }
-
-  .resumo-paciente__item:nth-child(-n + 2) {
-    border-top: 0;
-  }
-
-  .resumo-paciente__item:nth-child(even) {
-    padding-left: 18px;
+  .resumo-linha {
+    gap: 8px 24px;
   }
 
   .historico__dia {
@@ -1690,6 +1817,11 @@ code {
     flex-wrap: wrap;
   }
 
+  .vinculo-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .dialogo {
     align-items: flex-end;
     padding: 0;
@@ -1697,7 +1829,7 @@ code {
 
   .dialogo__painel {
     width: 100%;
-    border-radius: 10px 10px 0 0;
+    border-radius: 8px 8px 0 0;
     border-left: 0;
     border-right: 0;
     border-bottom: 0;
@@ -1705,13 +1837,13 @@ code {
   }
 
   .codigo {
-    flex-direction: column;
     align-items: flex-start;
   }
 
   .vinculo {
     flex-direction: column;
     align-items: flex-start;
+    gap: 4px;
   }
 
   .pagina__nav-dia .nav-dia__alvo {
@@ -1721,6 +1853,36 @@ code {
 
   .pagina__nav-dia {
     width: 100%;
+  }
+
+  /* Paciente (psicólogo) no celular: identidade + ação no topo,
+     depois hoje e consistência empilhadas */
+  .paciente {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'ident acao'
+      'hoje hoje'
+      'meta meta';
+    row-gap: 10px;
+    padding: 16px 0;
+    align-items: start;
+  }
+
+  .paciente__identidade {
+    grid-area: ident;
+  }
+
+  .paciente__hoje {
+    grid-area: hoje;
+  }
+
+  .paciente__consistencia {
+    grid-area: meta;
+    grid-column: auto;
+  }
+
+  .paciente__acao {
+    grid-area: acao;
   }
 }
 

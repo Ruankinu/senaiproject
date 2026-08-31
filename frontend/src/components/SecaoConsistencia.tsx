@@ -24,14 +24,14 @@ export function SecaoConsistencia({ progresso }: SecaoConsistenciaProps) {
         </div>
       </header>
 
-      <div className="consistencia__numero">
-        <span className="consistencia__dias">{streak}</span>
-        <span className="consistencia__unidade">
+      <div className="consistencia__linha">
+        <span className="consistencia__numero">
+          <b>{streak}</b>
           {pluralizar(streak, 'dia', 'dias')} de consistência
         </span>
         {melhorStreak > streak && melhorStreak > 0 && (
           <span className="consistencia__melhor">
-            melhor sequência: {melhorStreak}
+            melhor sequência: {melhorStreak} dias
           </span>
         )}
       </div>
@@ -45,11 +45,13 @@ export function SecaoConsistencia({ progresso }: SecaoConsistenciaProps) {
             <span className="badge__marca" aria-hidden="true">
               {badge.aberta ? <Icone nome="check" tamanho={12} /> : null}
             </span>
-            <span className="badge__nome">{badge.nome}</span>
-            <span className="badge__progresso">
-              {badge.aberta
-                ? 'Desbloqueada'
-                : `${badge.progresso}/${badge.meta} dias`}
+            <span className="badge__texto">
+              <span className="badge__nome">{badge.nome}</span>
+              <span className="badge__progresso">
+                {badge.aberta
+                  ? 'Desbloqueada'
+                  : `${badge.progresso}/${badge.meta} dias`}
+              </span>
             </span>
           </li>
         ))}

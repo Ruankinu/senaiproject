@@ -53,15 +53,13 @@ export function SecaoVinculo({
         <p className="secao__legenda">Carregando…</p>
       ) : psicologo ? (
         <div className="vinculo">
-          <div>
-            <span className="vinculo__rotulo">Vínculo ativo</span>
-            <p className="vinculo__pessoa">{psicologo.nome}</p>
-            <p className="vinculo__meta">{psicologo.email}</p>
-          </div>
+          <span className="vinculo__rotulo">Vínculo ativo</span>
+          <span className="vinculo__pessoa">{psicologo.nome}</span>
+          <span className="vinculo__meta">{psicologo.email}</span>
         </div>
       ) : (
         <form className="formulario vinculo-form" onSubmit={aoEnviar}>
-          <div className="campo campo--regua">
+          <div className="campo campo--regua vinculo-form__campo">
             <label htmlFor="campo-codigo">Código do psicólogo</label>
             <input
               id="campo-codigo"

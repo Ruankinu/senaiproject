@@ -106,35 +106,27 @@ export function PaginaPaciente() {
               )}
             </nav>
 
-            <div className="resumo-paciente">
-              <div className="resumo-paciente__item">
-                <span className="resumo-paciente__valor">
+            <div className="resumo-linha" aria-label="Resumo da rotina">
+              <span className="resumo-linha__item">
+                <b>
                   {resumo.dados.hoje.concluidas}/{resumo.dados.hoje.total}
-                </span>
-                <span className="resumo-paciente__rotulo">atividades hoje</span>
-              </div>
-              <div className="resumo-paciente__item">
-                <span className="resumo-paciente__valor">
-                  {resumo.dados.atrasadas}
-                </span>
-                <span className="resumo-paciente__rotulo">
-                  atrasadas em aberto
-                </span>
-              </div>
-              <div className="resumo-paciente__item">
-                <span className="resumo-paciente__valor">
-                  {resumo.dados.progresso.streak}
-                </span>
-                <span className="resumo-paciente__rotulo">
-                  dias de consistência
-                </span>
-              </div>
-              <div className="resumo-paciente__item">
-                <span className="resumo-paciente__valor">
+                </b>
+                atividades hoje
+              </span>
+              <span className="resumo-linha__item">
+                <b>{resumo.dados.atrasadas}</b>
+                atrasadas em aberto
+              </span>
+              <span className="resumo-linha__item">
+                <b>{resumo.dados.progresso.streak}</b>
+                dias de consistência
+              </span>
+              <span className="resumo-linha__item">
+                <b>
                   {resumo.dados.progresso.badges.filter((b) => b.aberta).length}
-                </span>
-                <span className="resumo-paciente__rotulo">conquistas</span>
-              </div>
+                </b>
+                conquistas
+              </span>
             </div>
 
             {rotinaDoDia && rotinaDoDia.total === 0 && (

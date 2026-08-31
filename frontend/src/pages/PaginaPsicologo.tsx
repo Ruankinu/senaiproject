@@ -54,9 +54,9 @@ export function PaginaPsicologo() {
           </div>
         </header>
 
-        <section aria-label="Código de vínculo">
+        <section className="secao codigo-secao" aria-label="Código de vínculo">
           <div className="codigo">
-            <div>
+            <div className="codigo__info">
               <span className="vinculo__rotulo">Código de vínculo</span>
               <p className="codigo__valor">{usuario?.codigo ?? '—'}</p>
               <p className="codigo__descricao">
@@ -114,7 +114,7 @@ function PacienteLinha({ paciente }: { paciente: PacienteResumo }) {
         <p className="paciente__email">{paciente.email}</p>
       </div>
 
-      <div className="paciente__progresso">
+      <div className="paciente__hoje">
         <span className="paciente__progresso-numero">
           {paciente.hoje.concluidas}/{paciente.hoje.total}
         </span>
@@ -139,16 +139,14 @@ function PacienteLinha({ paciente }: { paciente: PacienteResumo }) {
         {paciente.atrasadas === 0 && paciente.streak === 0 && '—'}
       </div>
 
-      <div className="paciente__acao">
-        <Link
-          to={`/psicologo/paciente/${paciente.id}`}
-          className="btn btn--icone"
-          aria-label={`Ver rotina de ${paciente.nome}`}
-          title="Ver rotina"
-        >
-          <Icone nome="chevron-right" tamanho={15} />
-        </Link>
-      </div>
+      <Link
+        to={`/psicologo/paciente/${paciente.id}`}
+        className="paciente__acao"
+        aria-label={`Ver rotina de ${paciente.nome}`}
+      >
+        Ver rotina
+        <Icone nome="chevron-right" tamanho={13} />
+      </Link>
     </article>
   );
 }
