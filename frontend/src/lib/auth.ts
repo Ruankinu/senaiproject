@@ -38,7 +38,8 @@ export async function obterSessao(): Promise<Usuario | null> {
     const resposta = await api.get<{ usuario: Usuario }>('/me');
     return resposta.usuario;
   } catch {
-    limparToken();
+    // 401 já é tratado pelo cliente HTTP (token limpo + evento rithmo:401);
+    // falhas de rede/5xx não devem descartar uma sessão válida.
     return null;
   }
 }

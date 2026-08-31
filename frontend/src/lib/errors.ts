@@ -13,11 +13,13 @@ export function mensagemErro(erro: unknown, contexto: string): string {
     }
 
     if (status === 401) {
-      return 'Sua sessão expirou. Entre novamente.';
+      // Preserva a mensagem do servidor (ex.: "E-mail ou senha incorretos."),
+      // que é mais precisa que o texto genérico de sessão expirada.
+      return message || 'Sua sessão expirou. Entre novamente.';
     }
 
     if (status === 403) {
-      return 'Você não tem acesso a esta área.';
+      return message || 'Você não tem acesso a esta área.';
     }
 
     if (status === 404) {
