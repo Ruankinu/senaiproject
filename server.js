@@ -17,6 +17,13 @@ const DIST = path.join(__dirname, 'frontend', 'dist');
 app.use(express.json());
 app.use(cors());
 
+// API: nunca servir respostas JSON em cache (evita que um navegador com
+// resposta antiga de /api continue vendo "Autenticação necessária.").
+app.use('/api', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+});
+
 // API do MVP (autenticada)
 app.use('/api/auth', AuthRoutes);
 app.use('/api', requireAuth, ApiRoutes);
@@ -27,7 +34,24 @@ const INDEX = path.join(DIST, 'index.html');
 if (fs.existsSync(INDEX)) {
     // index:false — a raiz só vira o app quando o cliente aceita HTML;
     // clientes JSON (rotas legadas) continuam recebendo JSON.
-    app.use(express.static(DIST, { index: false }));
+    // Assets têm hash no nome → imutáveis; HTML nunca em cache.
+    app.use(
+        '/assets',
+        express.static(path.join(DIST, 'assets'), {
+            maxAge: '365d',
+            immutable: true
+        })
+    );
+    app.use(
+        express.static(DIST, {
+            index: false,
+            setHeaders: (res, caminho) => {
+                if (caminho.endsWith('.html')) {
+                    res.setHeader('Cache-Control', 'no-store');
+                }
+            }
+        })
+    );
 
     // Fallback SPA para rotas do app (/login, /psicologo, ...). Aceita apenas
     // navegação HTML; chamadas JSON (API/rotas legadas) seguem para baixo.
@@ -35,9 +59,13 @@ if (fs.existsSync(INDEX)) {
         if (!req.accepts('html') || req.path.startsWith('/api')) return next();
         const arquivo = path.join(DIST, req.path.replace(/^\//, ''));
         if (req.path !== '/' && fs.existsSync(arquivo) && fs.statSync(arquivo).isFile()) {
-            return res.sendFile(arquivo);
+            return res.sendFile(arquivo, {
+                headers: { 'Cache-Control': 'no-store' }
+            });
         }
-        return res.sendFile(INDEX);
+        return res.sendFile(INDEX, {
+            headers: { 'Cache-Control': 'no-store' }
+        });
     });
 }
 
