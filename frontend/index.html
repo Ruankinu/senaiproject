@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="RITHMO — organize suas tarefas com ritmo. Lista, prazos e prioridades em um só lugar." />
+    <meta name="theme-color" content="#0b2e59" />
+    <link rel="icon" type="image/png" href="/logo-icone.png" />
+    <title>RITHMO — Sua rotina</title>
+  </head>
+  <body>
+    <!-- NOVO — aplica o tema escolhido manualmente (salvo pelo hook
+         useTema em hooks/tema.ts) antes do React carregar, pra não
+         piscar a cor errada por uma fração de segundo. Se a pessoa nunca
+         escolheu manualmente, não faz nada e o tema segue o sistema
+         automaticamente (via CSS, sem precisar desse script). -->
+    <script>
+      (function () {
+        try {
+          var salvo = localStorage.getItem('rithmo-tema');
+          if (salvo === 'claro' || salvo === 'escuro') {
+            document.documentElement.setAttribute('data-tema', salvo);
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
